@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Film Go 使用相机进行取景测光，不会拍摄或上传任何照片。</string>
 </dict>
 </plist>
