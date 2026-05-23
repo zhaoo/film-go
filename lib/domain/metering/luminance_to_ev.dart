@@ -42,4 +42,22 @@ class LuminanceToEv {
     );
     return targetEv - raw;
   }
+
+  /// 入射光测光常数（CIPA / ISO 2720）。
+  static const double cIncident = 2.5;
+
+  /// 防止 lux=0 的 floor。
+  static const double _luxFloor = 0.01;
+
+  /// EV (入射光) = log2(lux / C) + log2(ISO/100) + offset
+  static double fromLux({
+    required num lux,
+    required IsoValue iso,
+    required double calibrationOffset,
+  }) {
+    final clamped = lux < _luxFloor ? _luxFloor : lux.toDouble();
+    final base = math.log(clamped / cIncident) / math.ln2;
+    final isoTerm = math.log(iso.value / 100) / math.ln2;
+    return base + isoTerm + calibrationOffset;
+  }
 }

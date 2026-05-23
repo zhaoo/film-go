@@ -75,4 +75,38 @@ void main() {
       expect(ev, closeTo(targetEv, 1e-6));
     });
   });
+
+  group('LuminanceToEv.fromLux', () {
+    test('lux 翻倍等价于 EV +1', () {
+      final dim = LuminanceToEv.fromLux(
+        lux: 100,
+        iso: IsoValue(100),
+        calibrationOffset: 0,
+      );
+      final bright = LuminanceToEv.fromLux(
+        lux: 200,
+        iso: IsoValue(100),
+        calibrationOffset: 0,
+      );
+      expect(bright - dim, closeTo(1.0, 1e-9));
+    });
+
+    test('lux=2.5, ISO 100, offset 0 → EV 0', () {
+      final ev = LuminanceToEv.fromLux(
+        lux: 2.5,
+        iso: IsoValue(100),
+        calibrationOffset: 0,
+      );
+      expect(ev, closeTo(0, 1e-9));
+    });
+
+    test('lux<=0 安全返回低值不抛 NaN', () {
+      final v = LuminanceToEv.fromLux(
+        lux: 0,
+        iso: IsoValue(100),
+        calibrationOffset: 0,
+      );
+      expect(v.isFinite, isTrue);
+    });
+  });
 }
