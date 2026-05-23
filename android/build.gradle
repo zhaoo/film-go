@@ -9,6 +9,30 @@ rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
+
+// Compatibility shim for older Flutter plugins that don't declare
+// `android.namespace` (required by AGP 8+). Reads the legacy `package`
+// attribute from the plugin's AndroidManifest.xml and applies it as namespace.
+// Must be registered BEFORE the `evaluationDependsOn(":app")` block, otherwise
+// subprojects are already evaluated by the time the hook is attached.
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            def androidExt = project.extensions.findByName("android")
+            if (androidExt != null && androidExt.namespace == null) {
+                def manifestFile = project.file("src/main/AndroidManifest.xml")
+                if (manifestFile.exists()) {
+                    def parsed = new XmlParser().parse(manifestFile)
+                    def pkg = parsed.attribute("package")
+                    if (pkg != null) {
+                        androidExt.namespace = pkg.toString()
+                    }
+                }
+            }
+        }
+    }
+}
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
