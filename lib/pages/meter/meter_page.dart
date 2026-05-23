@@ -14,6 +14,7 @@ import 'package:film_go/pages/meter/widgets/meter_dial.dart';
 import 'package:film_go/pages/meter/widgets/mode_selector.dart';
 import 'package:film_go/pages/meter/widgets/source_selector.dart';
 import 'package:film_go/services/camera_service.dart';
+import 'package:film_go/services/light_sensor_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,12 +30,16 @@ class MeterPage extends ConsumerStatefulWidget {
 class _MeterPageState extends ConsumerState<MeterPage> {
   CameraService? _camera;
   StreamSubscription<GrayFrame>? _frameSub;
+  LightSensorService? _light;
+  StreamSubscription<int>? _luxSub;
   MeterSource? _wiredSource;
 
   @override
   void dispose() {
     _frameSub?.cancel();
+    _luxSub?.cancel();
     unawaited(_camera?.dispose());
+    unawaited(_light?.dispose());
     super.dispose();
   }
 
@@ -79,12 +84,44 @@ class _MeterPageState extends ConsumerState<MeterPage> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _wireLight() async {
+    if (_light != null) return;
+    final svc = LightSensorService();
+    if (!svc.isAvailable()) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('当前设备无光线传感器')),
+        );
+        ref.read(meterControllerProvider).setSource(MeterSource.manual);
+      }
+      return;
+    }
+    _light = svc;
+    _luxSub = svc.lux().listen((lux) {
+      ref.read(meterControllerProvider).processLux(lux);
+    });
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _unwireLight() async {
+    await _luxSub?.cancel();
+    _luxSub = null;
+    await _light?.dispose();
+    _light = null;
+    if (mounted) setState(() {});
+  }
+
   Future<void> _onSourceChanged(MeterSource s) async {
     ref.read(meterControllerProvider).setSource(s);
     if (s == MeterSource.camera) {
+      await _unwireLight();
       await _wireCamera();
+    } else if (s == MeterSource.lightSensor) {
+      await _unwireCamera();
+      await _wireLight();
     } else {
       await _unwireCamera();
+      await _unwireLight();
     }
   }
 
