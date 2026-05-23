@@ -51,9 +51,8 @@ class MeterState {
       source: source ?? this.source,
       calibrationOffset: calibrationOffset ?? this.calibrationOffset,
       lastReading: lastReading ?? this.lastReading,
-      lockedEv: identical(lockedEv, _sentinel)
-          ? this.lockedEv
-          : lockedEv as double?,
+      lockedEv:
+          identical(lockedEv, _sentinel) ? this.lockedEv : lockedEv as double?,
       errorMessage: identical(errorMessage, _sentinel)
           ? this.errorMessage
           : errorMessage as String?,

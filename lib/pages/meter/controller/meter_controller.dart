@@ -32,16 +32,18 @@ class MeterController extends ChangeNotifier {
   void setSource(MeterSource source) => _set(_state.copyWith(source: source));
 
   void setManualEv(double ev) {
-    _set(_state.copyWith(
-      source: MeterSource.manual,
-      lastReading: MeterReading(
-        ev: ev,
-        iso: _state.iso,
-        mode: _state.mode,
+    _set(
+      _state.copyWith(
         source: MeterSource.manual,
-        takenAt: DateTime.now(),
+        lastReading: MeterReading(
+          ev: ev,
+          iso: _state.iso,
+          mode: _state.mode,
+          source: MeterSource.manual,
+          takenAt: DateTime.now(),
+        ),
       ),
-    ),);
+    );
   }
 
   void lock() {
@@ -71,16 +73,18 @@ class MeterController extends ChangeNotifier {
       iso: _state.iso,
       calibrationOffset: _state.calibrationOffset,
     );
-    _set(_state.copyWith(
-      source: MeterSource.camera,
-      lastReading: MeterReading(
-        ev: ev,
-        iso: _state.iso,
-        mode: _state.mode,
+    _set(
+      _state.copyWith(
         source: MeterSource.camera,
-        takenAt: DateTime.now(),
+        lastReading: MeterReading(
+          ev: ev,
+          iso: _state.iso,
+          mode: _state.mode,
+          source: MeterSource.camera,
+          takenAt: DateTime.now(),
+        ),
       ),
-    ),);
+    );
   }
 
   void processLux(num lux) {
@@ -89,16 +93,18 @@ class MeterController extends ChangeNotifier {
       iso: _state.iso,
       calibrationOffset: _state.calibrationOffset,
     );
-    _set(_state.copyWith(
-      source: MeterSource.lightSensor,
-      lastReading: MeterReading(
-        ev: ev,
-        iso: _state.iso,
-        mode: _state.mode,
+    _set(
+      _state.copyWith(
         source: MeterSource.lightSensor,
-        takenAt: DateTime.now(),
+        lastReading: MeterReading(
+          ev: ev,
+          iso: _state.iso,
+          mode: _state.mode,
+          source: MeterSource.lightSensor,
+          takenAt: DateTime.now(),
+        ),
       ),
-    ),);
+    );
   }
 
   Future<void> applyCalibrationFromLastReading({
@@ -112,10 +118,12 @@ class MeterController extends ChangeNotifier {
       targetEv: targetEv,
     );
     await _store.write(offset);
-    _set(_state.copyWith(
-      calibrationOffset: offset,
-      lastReading: _state.lastReading?.copyWith(ev: targetEv),
-    ),);
+    _set(
+      _state.copyWith(
+        calibrationOffset: offset,
+        lastReading: _state.lastReading?.copyWith(ev: targetEv),
+      ),
+    );
   }
 
   Future<void> resetCalibration() async {
