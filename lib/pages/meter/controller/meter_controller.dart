@@ -41,7 +41,7 @@ class MeterController extends ChangeNotifier {
         source: MeterSource.manual,
         takenAt: DateTime.now(),
       ),
-    ));
+    ),);
   }
 
   void lock() {
@@ -80,7 +80,7 @@ class MeterController extends ChangeNotifier {
         source: MeterSource.camera,
         takenAt: DateTime.now(),
       ),
-    ));
+    ),);
   }
 
   void processLux(num lux) {
@@ -98,7 +98,7 @@ class MeterController extends ChangeNotifier {
         source: MeterSource.lightSensor,
         takenAt: DateTime.now(),
       ),
-    ));
+    ),);
   }
 
   Future<void> applyCalibrationFromLastReading({
@@ -115,7 +115,7 @@ class MeterController extends ChangeNotifier {
     _set(_state.copyWith(
       calibrationOffset: offset,
       lastReading: _state.lastReading?.copyWith(ev: targetEv),
-    ));
+    ),);
   }
 
   Future<void> resetCalibration() async {
