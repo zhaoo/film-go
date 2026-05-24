@@ -2,20 +2,23 @@ import 'package:film_go/domain/metering/luminance_extractor.dart';
 import 'package:film_go/domain/metering/luminance_to_ev.dart';
 import 'package:film_go/domain/metering/meter_mode.dart';
 import 'package:film_go/domain/metering/meter_reading.dart';
+import 'package:film_go/domain/shared/ev_stop.dart';
 import 'package:film_go/domain/shared/iso_value.dart';
+import 'package:film_go/domain/shared/nd_filter.dart';
 import 'package:film_go/pages/meter/controller/meter_state.dart';
 import 'package:film_go/services/calibration_store.dart';
 import 'package:film_go/services/camera_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart' show Offset;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class MeterController extends ChangeNotifier {
-  MeterController({required CalibrationStoreLike store}) : _store = store {
-    _state = MeterState.initial();
-  }
+  MeterController({required CalibrationStoreLike store})
+      : _store = store,
+        _state = MeterState.initial();
 
   final CalibrationStoreLike _store;
-  late MeterState _state;
+  MeterState _state;
   MeterState get state => _state;
 
   void _set(MeterState s) {
@@ -24,88 +27,97 @@ class MeterController extends ChangeNotifier {
   }
 
   void bootstrap() {
-    _set(_state.copyWith(calibrationOffset: _store.read()));
-  }
-
-  void setIso(IsoValue iso) => _set(_state.copyWith(iso: iso));
-  void setMode(MeterMode mode) => _set(_state.copyWith(mode: mode));
-  void setSource(MeterSource source) => _set(_state.copyWith(source: source));
-
-  void setManualEv(double ev) {
     _set(
       _state.copyWith(
-        source: MeterSource.manual,
-        lastReading: MeterReading(
-          ev: ev,
-          iso: _state.iso,
-          mode: _state.mode,
-          source: MeterSource.manual,
-          takenAt: DateTime.now(),
-        ),
+        shared: _state.shared.copyWith(calibrationOffset: _store.read()),
       ),
     );
   }
 
-  void lock() {
-    final ev = _state.lastReading?.ev;
+  // ---- shared ------------------------------------------------------------
+
+  void setTab(MeterTab tab) => _set(_state.copyWith(currentTab: tab));
+
+  void setIso(IsoValue iso) =>
+      _set(_state.copyWith(shared: _state.shared.copyWith(iso: iso)));
+
+  void setFilmId(String? id) =>
+      _set(_state.copyWith(shared: _state.shared.copyWith(filmId: id)));
+
+  // ---- quick -------------------------------------------------------------
+
+  void quickSetComp(EvStop comp) =>
+      _set(_state.copyWith(quick: _state.quick.copyWith(comp: comp)));
+
+  void quickSetFilter(NdFilter filter) =>
+      _set(_state.copyWith(quick: _state.quick.copyWith(filter: filter)));
+
+  void quickLock() {
+    final ev = _state.quick.metered?.ev;
     if (ev == null) return;
-    _set(_state.copyWith(lockedEv: ev));
+    _set(_state.copyWith(quick: _state.quick.copyWith(lockedEv: ev)));
   }
 
-  void unlock() {
-    _set(_state.copyWith(lockedEv: null));
-  }
+  void quickUnlock() =>
+      _set(_state.copyWith(quick: _state.quick.copyWith(lockedEv: null)));
+
+  // ---- pro ---------------------------------------------------------------
+
+  void proSetComp(EvStop comp) =>
+      _set(_state.copyWith(pro: _state.pro.copyWith(comp: comp)));
+
+  void proSetFilter(NdFilter filter) =>
+      _set(_state.copyWith(pro: _state.pro.copyWith(filter: filter)));
+
+  void proSetMeterMode(MeterMode mode) =>
+      _set(_state.copyWith(pro: _state.pro.copyWith(meterMode: mode)));
+
+  void proSetSpotCenter(Offset center) =>
+      _set(_state.copyWith(pro: _state.pro.copyWith(spotCenter: center)));
+
+  // ---- camera ingest -----------------------------------------------------
 
   num? _lastGrayMean;
 
-  void processCameraFrame(GrayFrame frame, {SpotCenter? spotCenter}) {
+  /// 处理一帧灰度图。当前 tab 决定 ROI 与目标状态。
+  ///
+  /// PR6 阶段沿用旧的 `LuminanceExtractor.extract` + `LuminanceToEv.fromGrayMean`
+  /// 通道；PR7/PR8 接入相机 metadata + 线性 gamma 公式。
+  void processCameraFrame(GrayFrame frame) {
+    final tab = _state.currentTab;
+    final mode = tab == MeterTab.pro ? _state.pro.meterMode : MeterMode.average;
+    final spot = tab == MeterTab.pro
+        ? SpotCenter(_state.pro.spotCenter.dx, _state.pro.spotCenter.dy)
+        : const SpotCenter(0.5, 0.5);
     final mean = LuminanceExtractor.extract(
       bytes: frame.bytes,
       width: frame.width,
       height: frame.height,
       bytesPerRow: frame.bytesPerRow,
-      mode: _state.mode,
-      spotCenter: spotCenter ?? const SpotCenter(0.5, 0.5),
+      mode: mode,
+      spotCenter: spot,
     );
     _lastGrayMean = mean;
     final ev = LuminanceToEv.fromGrayMean(
       grayMean: mean,
-      iso: _state.iso,
-      calibrationOffset: _state.calibrationOffset,
+      iso: _state.shared.iso,
+      calibrationOffset: _state.shared.calibrationOffset,
     );
-    _set(
-      _state.copyWith(
-        source: MeterSource.camera,
-        lastReading: MeterReading(
-          ev: ev,
-          iso: _state.iso,
-          mode: _state.mode,
-          source: MeterSource.camera,
-          takenAt: DateTime.now(),
-        ),
-      ),
+    final reading = MeterReading(
+      ev: ev,
+      iso: _state.shared.iso,
+      mode: mode,
+      source: MeterSource.camera,
+      takenAt: DateTime.now(),
     );
+    if (tab == MeterTab.pro) {
+      _set(_state.copyWith(pro: _state.pro.copyWith(metered: reading)));
+    } else {
+      _set(_state.copyWith(quick: _state.quick.copyWith(metered: reading)));
+    }
   }
 
-  void processLux(num lux) {
-    final ev = LuminanceToEv.fromLux(
-      lux: lux,
-      iso: _state.iso,
-      calibrationOffset: _state.calibrationOffset,
-    );
-    _set(
-      _state.copyWith(
-        source: MeterSource.lightSensor,
-        lastReading: MeterReading(
-          ev: ev,
-          iso: _state.iso,
-          mode: _state.mode,
-          source: MeterSource.lightSensor,
-          takenAt: DateTime.now(),
-        ),
-      ),
-    );
-  }
+  // ---- calibration -------------------------------------------------------
 
   Future<void> applyCalibrationFromLastReading({
     required double targetEv,
@@ -114,21 +126,24 @@ class MeterController extends ChangeNotifier {
     if (mean == null) return;
     final offset = LuminanceToEv.calibrationOffsetFor(
       grayMean: mean,
-      iso: _state.iso,
+      iso: _state.shared.iso,
       targetEv: targetEv,
     );
     await _store.write(offset);
     _set(
       _state.copyWith(
-        calibrationOffset: offset,
-        lastReading: _state.lastReading?.copyWith(ev: targetEv),
+        shared: _state.shared.copyWith(calibrationOffset: offset),
       ),
     );
   }
 
   Future<void> resetCalibration() async {
     await _store.clear();
-    _set(_state.copyWith(calibrationOffset: 0));
+    _set(
+      _state.copyWith(
+        shared: _state.shared.copyWith(calibrationOffset: 0),
+      ),
+    );
   }
 }
 

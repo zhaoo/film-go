@@ -1,62 +1,167 @@
 import 'package:film_go/domain/metering/meter_mode.dart';
 import 'package:film_go/domain/metering/meter_reading.dart';
+import 'package:film_go/domain/shared/ev_stop.dart';
 import 'package:film_go/domain/shared/iso_value.dart';
+import 'package:film_go/domain/shared/nd_filter.dart';
+import 'package:flutter/painting.dart' show Offset;
 import 'package:meta/meta.dart';
 
+/// 测光页顶部 tab 的两种模式。
+enum MeterTab { quick, pro }
+
+/// 跨 tab 共享的设置：胶卷 ISO、胶卷 ID、校准偏移。
+@immutable
+class SharedMeterState {
+  final IsoValue iso;
+  final String? filmId;
+  final double calibrationOffset;
+
+  const SharedMeterState({
+    required this.iso,
+    required this.filmId,
+    required this.calibrationOffset,
+  });
+
+  SharedMeterState copyWith({
+    IsoValue? iso,
+    Object? filmId = _sentinel,
+    double? calibrationOffset,
+  }) {
+    return SharedMeterState(
+      iso: iso ?? this.iso,
+      filmId: identical(filmId, _sentinel) ? this.filmId : filmId as String?,
+      calibrationOffset: calibrationOffset ?? this.calibrationOffset,
+    );
+  }
+}
+
+/// 快速测光 tab 的本地状态。
+@immutable
+class QuickModeState {
+  final EvStop comp;
+  final NdFilter filter;
+  final double? lockedEv;
+  final MeterReading? metered;
+
+  const QuickModeState({
+    required this.comp,
+    required this.filter,
+    required this.lockedEv,
+    required this.metered,
+  });
+
+  factory QuickModeState.initial() => const QuickModeState(
+        comp: EvStop.zero,
+        filter: NdFilter.none,
+        lockedEv: null,
+        metered: null,
+      );
+
+  QuickModeState copyWith({
+    EvStop? comp,
+    NdFilter? filter,
+    Object? lockedEv = _sentinel,
+    Object? metered = _sentinel,
+  }) {
+    return QuickModeState(
+      comp: comp ?? this.comp,
+      filter: filter ?? this.filter,
+      lockedEv:
+          identical(lockedEv, _sentinel) ? this.lockedEv : lockedEv as double?,
+      metered: identical(metered, _sentinel)
+          ? this.metered
+          : metered as MeterReading?,
+    );
+  }
+}
+
+/// 专业测光 tab 的本地状态。
+@immutable
+class ProModeState {
+  final EvStop comp;
+  final NdFilter filter;
+  final MeterMode meterMode;
+  final Offset spotCenter;
+  final MeterReading? metered;
+
+  const ProModeState({
+    required this.comp,
+    required this.filter,
+    required this.meterMode,
+    required this.spotCenter,
+    required this.metered,
+  });
+
+  factory ProModeState.initial() => const ProModeState(
+        comp: EvStop.zero,
+        filter: NdFilter.none,
+        meterMode: MeterMode.centerWeighted,
+        spotCenter: Offset(0.5, 0.5),
+        metered: null,
+      );
+
+  ProModeState copyWith({
+    EvStop? comp,
+    NdFilter? filter,
+    MeterMode? meterMode,
+    Offset? spotCenter,
+    Object? metered = _sentinel,
+  }) {
+    return ProModeState(
+      comp: comp ?? this.comp,
+      filter: filter ?? this.filter,
+      meterMode: meterMode ?? this.meterMode,
+      spotCenter: spotCenter ?? this.spotCenter,
+      metered: identical(metered, _sentinel)
+          ? this.metered
+          : metered as MeterReading?,
+    );
+  }
+}
+
+/// 测光页整体状态。
 @immutable
 class MeterState {
+  final MeterTab currentTab;
+  final SharedMeterState shared;
+  final QuickModeState quick;
+  final ProModeState pro;
+  final String? errorMessage;
+
   const MeterState({
-    required this.iso,
-    required this.mode,
-    required this.source,
-    required this.calibrationOffset,
-    this.lastReading,
-    this.lockedEv,
+    required this.currentTab,
+    required this.shared,
+    required this.quick,
+    required this.pro,
     this.errorMessage,
-    this.permissionGranted = false,
   });
 
   factory MeterState.initial() => MeterState(
-        iso: IsoValue(400),
-        mode: MeterMode.centerWeighted,
-        source: MeterSource.manual,
-        calibrationOffset: 0,
+        currentTab: MeterTab.quick,
+        shared: SharedMeterState(
+          iso: IsoValue(400),
+          filmId: null,
+          calibrationOffset: 0,
+        ),
+        quick: QuickModeState.initial(),
+        pro: ProModeState.initial(),
       );
 
-  final IsoValue iso;
-  final MeterMode mode;
-  final MeterSource source;
-  final double calibrationOffset;
-  final MeterReading? lastReading;
-  final double? lockedEv;
-  final String? errorMessage;
-  final bool permissionGranted;
-
-  /// 当前实际用于推荐曝光组合的 EV：优先 locked，其次 lastReading.ev。
-  double? get effectiveEv => lockedEv ?? lastReading?.ev;
-
   MeterState copyWith({
-    IsoValue? iso,
-    MeterMode? mode,
-    MeterSource? source,
-    double? calibrationOffset,
-    MeterReading? lastReading,
-    Object? lockedEv = _sentinel,
+    MeterTab? currentTab,
+    SharedMeterState? shared,
+    QuickModeState? quick,
+    ProModeState? pro,
     Object? errorMessage = _sentinel,
-    bool? permissionGranted,
   }) {
     return MeterState(
-      iso: iso ?? this.iso,
-      mode: mode ?? this.mode,
-      source: source ?? this.source,
-      calibrationOffset: calibrationOffset ?? this.calibrationOffset,
-      lastReading: lastReading ?? this.lastReading,
-      lockedEv:
-          identical(lockedEv, _sentinel) ? this.lockedEv : lockedEv as double?,
+      currentTab: currentTab ?? this.currentTab,
+      shared: shared ?? this.shared,
+      quick: quick ?? this.quick,
+      pro: pro ?? this.pro,
       errorMessage: identical(errorMessage, _sentinel)
           ? this.errorMessage
           : errorMessage as String?,
-      permissionGranted: permissionGranted ?? this.permissionGranted,
     );
   }
 }

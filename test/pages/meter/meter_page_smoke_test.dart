@@ -1,5 +1,7 @@
 import 'package:film_go/pages/meter/controller/meter_controller.dart';
+import 'package:film_go/pages/meter/controller/meter_state.dart';
 import 'package:film_go/pages/meter/meter_page.dart';
+import 'package:film_go/pages/meter/widgets/mode_tab.dart';
 import 'package:film_go/services/calibration_store.dart';
 import 'package:film_go/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -16,41 +18,40 @@ class _FakeStore implements CalibrationStoreLike {
   Future<void> clear() async {}
 }
 
+Widget _wrap(MeterController c) => ProviderScope(
+      overrides: [
+        meterControllerProvider.overrideWith((ref) => c),
+      ],
+      child: MaterialApp(
+        theme: AppTheme.light(),
+        home: const MeterPage(),
+      ),
+    );
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  testWidgets('MeterPage 渲染并响应手动输入', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          meterControllerProvider.overrideWith(
-            (ref) => MeterController(store: _FakeStore())..bootstrap(),
-          ),
-        ],
-        child: MaterialApp(
-          theme: AppTheme.light(),
-          home: const MeterPage(),
-        ),
-      ),
-    );
+  testWidgets('MeterPage 默认显示快速测光占位 + ModeTab', (tester) async {
+    final c = MeterController(store: _FakeStore())..bootstrap();
+    await tester.pumpWidget(_wrap(c));
     await tester.pumpAndSettle();
 
-    expect(find.text('取景测光'), findsOneWidget);
-    expect(find.textContaining('EV'), findsWidgets);
-    expect(find.text('手动'), findsWidgets);
-    expect(find.text('点测'), findsOneWidget);
+    expect(find.byType(ModeTab), findsOneWidget);
+    expect(find.text('快速'), findsOneWidget);
+    expect(find.text('专业'), findsOneWidget);
+    expect(find.textContaining('快速测光'), findsOneWidget);
+  });
 
-    final manualBtn = find.text('手动输入');
-    await tester.scrollUntilVisible(manualBtn, 100);
-    await tester.tap(manualBtn);
-    await tester.pumpAndSettle();
-    expect(find.text('手动输入 EV'), findsOneWidget);
-
-    await tester.enterText(find.byType(TextField), '12');
-    await tester.tap(find.text('确定'));
+  testWidgets('点击「专业」切换到 Pro 视图', (tester) async {
+    final c = MeterController(store: _FakeStore())..bootstrap();
+    await tester.pumpWidget(_wrap(c));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('EV 12'), findsOneWidget);
+    await tester.tap(find.text('专业'));
+    await tester.pumpAndSettle();
+
+    expect(c.state.currentTab, MeterTab.pro);
+    expect(find.textContaining('专业测光'), findsOneWidget);
   });
 }
