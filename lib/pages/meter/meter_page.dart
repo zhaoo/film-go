@@ -62,8 +62,8 @@ class _MeterPageState extends ConsumerState<MeterPage> {
             throw StateError('相机未初始化');
           }
           // takePicture() 与 image stream 互斥：先停帧流，拍完恢复。
-          await _camera.stop();
           try {
+            await _camera.stop();
             final file = await controller.takePicture();
             return Uint8List.fromList(await file.readAsBytes());
           } finally {
@@ -71,12 +71,15 @@ class _MeterPageState extends ConsumerState<MeterPage> {
           }
         },
         saveToGallery: (bytes, name) async {
-          await ImageGallerySaver.saveImage(
+          final r = await ImageGallerySaver.saveImage(
             bytes,
             name: name,
             quality: 90,
             isReturnImagePathOfIOS: true,
           );
+          if (r is Map && r['isSuccess'] != true) {
+            throw StateError('保存到相册失败: ${r['errorMessage'] ?? r}');
+          }
         },
       );
       if (mounted) setState(() => _ready = true);

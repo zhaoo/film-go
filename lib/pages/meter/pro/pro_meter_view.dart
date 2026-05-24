@@ -37,6 +37,7 @@ class _ProMeterViewState extends ConsumerState<ProMeterView> {
   bool _capturing = false;
 
   Future<void> _onShutter(ExposurePair? pair) async {
+    if (_capturing) return;
     final svc = widget.captureService;
     if (svc == null || pair == null) return;
     setState(() => _capturing = true);
