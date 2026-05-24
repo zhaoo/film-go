@@ -194,8 +194,9 @@ class CameraMetadataChannel {
 
 如果原生通道在某机型读不到 metadata（极少数老 Android 不支持 Camera2 Level FULL）：
 - `CameraMetadataChannel.isSupported()` 返回 false
-- Dart 侧切回旧公式（仅 `grayMean`，无 metadata 项）
-- UI 提示「此设备测光精度受限，建议手动校准」
+- Dart 侧使用降级公式：`EV100_fallback = log2(yLinear · 12.5 · 100) + calibrationOffset`
+  （等价于把"中灰对应 EV100=0"作为参考点的纯反射光估计；无相机参数补偿，需依赖用户校准）
+- UI 横幅提示「此设备测光精度受限，建议手动校准」
 - 不抛错，不阻塞用户
 
 ---
@@ -252,13 +253,14 @@ class CameraMetadataChannel {
 ```
 每一帧 GrayFrame + CameraMetadataFrame
   └→ MeterController.processFrame()
-     ├─ 算 EV100_live (= §3.2 公式)
+     ├─ 算 EV100_live (= §3.2 公式，连续 double)
      ├─ 若 quickState.lockedEv == null:
-     │   quickState.metered = round_to_third(EV100_live)
-     └─ EV_eff = (lockedEv ?? metered.ev)
-                + log2(ISO/100) − COMP − FILTER_stops
-     └→ EvCalculator.suggestPairs → DualScale
-     └→ drum 四列 controller.animateTo()
+     │   quickState.metered.evHundredInt = round(EV100_live)        // 整数，给 EV100 列
+     │   quickState.metered.evHundredFrac = EV100_live − evHundredInt // 小数残差只用于 EV_eff
+     └─ EV_eff = (lockedEv ?? (evHundredInt + evHundredFrac))
+                + log2(ISO_film / 100) − COMP_stops − FILTER_stops
+     └→ EvCalculator.suggestPairs(EV_eff, ISO_film) → DualScale
+     └→ drum 四列 controller.animateTo() (EV100 列只动整数位)
 ```
 
 用户滚动 drum：
@@ -366,7 +368,7 @@ ISO 400 · 1/125 · f/2.8
 - 颜色：白色 + 黑描边（1px）
 - 字号：图片短边 × 2.5%
 - 内边距：图片短边 × 3%
-- 时间从 `DateTime.now()` 取，不带时区
+- 时间：`DateTime.now()` 设备本地时间，格式 `yyyy-MM-dd HH:mm`，无时区显示
 
 **新依赖**
 
