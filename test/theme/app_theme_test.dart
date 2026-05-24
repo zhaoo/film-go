@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  // 注入空 TextTheme 避免触发 AppTypography → google_fonts 在测试环境的运行时下载。
   const fakeTextTheme = TextTheme();
 
   group('AppTheme - light', () {
@@ -11,6 +12,7 @@ void main() {
     setUp(() => t = AppTheme.light(textTheme: fakeTextTheme));
 
     test('背景 paperWhite，前景 charcoalBlack', () {
+      expect(t.brightness, Brightness.light);
       expect(t.scaffoldBackgroundColor, AppColors.paperWhite);
       expect(t.colorScheme.surface, AppColors.paperWhite);
       expect(t.colorScheme.onSurface, AppColors.charcoalBlack);
@@ -37,6 +39,7 @@ void main() {
     setUp(() => t = AppTheme.dark(textTheme: fakeTextTheme));
 
     test('背景 charcoalBlack，前景 paperWhite', () {
+      expect(t.brightness, Brightness.dark);
       expect(t.scaffoldBackgroundColor, AppColors.charcoalBlack);
       expect(t.colorScheme.surface, AppColors.charcoalBlack);
       expect(t.colorScheme.onSurface, AppColors.paperWhite);
@@ -45,6 +48,10 @@ void main() {
     test('surface 层级使用 dark 系列', () {
       expect(t.colorScheme.surfaceContainerHighest, AppColors.surfaceHighDark);
       expect(t.colorScheme.surfaceContainerHigh, AppColors.surfaceLowDark);
+    });
+
+    test('error = darkroomRed', () {
+      expect(t.colorScheme.error, AppColors.darkroomRed);
     });
   });
 
