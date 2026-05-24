@@ -24,19 +24,28 @@ class AppTheme {
     TextTheme? textTheme,
   }) {
     final isDark = brightness == Brightness.dark;
-    final bg = isDark ? AppColors.black : AppColors.white;
-    final fg = isDark ? AppColors.white : AppColors.black;
+    final bg = isDark ? AppColors.charcoalBlack : AppColors.paperWhite;
+    final fg = isDark ? AppColors.paperWhite : AppColors.charcoalBlack;
+    final surfaceHigh =
+        isDark ? AppColors.surfaceHighDark : AppColors.surfaceHighLight;
+    final surfaceLow =
+        isDark ? AppColors.surfaceLowDark : AppColors.surfaceLowLight;
 
     final colorScheme = ColorScheme(
       brightness: brightness,
       primary: fg,
       onPrimary: bg,
-      secondary: fg,
+      secondary: AppColors.muted,
       onSecondary: bg,
-      error: AppColors.darkroomRed,
-      onError: AppColors.white,
       surface: bg,
       onSurface: fg,
+      surfaceContainerHighest: surfaceHigh,
+      surfaceContainerHigh: surfaceLow,
+      onSurfaceVariant: AppColors.muted,
+      outline: AppColors.divider,
+      outlineVariant: AppColors.divider,
+      error: AppColors.darkroomRed,
+      onError: AppColors.paperWhite,
     );
 
     return ThemeData(
