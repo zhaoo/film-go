@@ -42,12 +42,14 @@ class QuickModeState {
   final NdFilter filter;
   final double? lockedEv;
   final MeterReading? metered;
+  final int? userPairOffset;
 
   const QuickModeState({
     required this.comp,
     required this.filter,
     required this.lockedEv,
     required this.metered,
+    required this.userPairOffset,
   });
 
   factory QuickModeState.initial() => const QuickModeState(
@@ -55,6 +57,7 @@ class QuickModeState {
         filter: NdFilter.none,
         lockedEv: null,
         metered: null,
+        userPairOffset: null,
       );
 
   QuickModeState copyWith({
@@ -62,6 +65,7 @@ class QuickModeState {
     NdFilter? filter,
     Object? lockedEv = _sentinel,
     Object? metered = _sentinel,
+    Object? userPairOffset = _sentinel,
   }) {
     return QuickModeState(
       comp: comp ?? this.comp,
@@ -71,6 +75,9 @@ class QuickModeState {
       metered: identical(metered, _sentinel)
           ? this.metered
           : metered as MeterReading?,
+      userPairOffset: identical(userPairOffset, _sentinel)
+          ? this.userPairOffset
+          : userPairOffset as int?,
     );
   }
 }

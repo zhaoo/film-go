@@ -65,6 +65,14 @@ class MeterController extends ChangeNotifier {
   void quickLockTo(double ev) =>
       _set(_state.copyWith(quick: _state.quick.copyWith(lockedEv: ev)));
 
+  void quickSetPairOffset(int offset) => _set(
+        _state.copyWith(quick: _state.quick.copyWith(userPairOffset: offset)),
+      );
+
+  void quickResetPairOffset() => _set(
+        _state.copyWith(quick: _state.quick.copyWith(userPairOffset: null)),
+      );
+
   // ---- pro ---------------------------------------------------------------
 
   void proSetComp(EvStop comp) =>

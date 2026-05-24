@@ -129,5 +129,27 @@ void main() {
       expect(c.state.shared.calibrationOffset, closeTo(12 - raw, 1e-6));
       expect(store.read(), c.state.shared.calibrationOffset);
     });
+
+    test('userPairOffset 默认 null，quickSetPairOffset 写入', () {
+      expect(c.state.quick.userPairOffset, isNull);
+      c.quickSetPairOffset(2);
+      expect(c.state.quick.userPairOffset, 2);
+      c.quickSetPairOffset(-1);
+      expect(c.state.quick.userPairOffset, -1);
+    });
+
+    test('quickResetPairOffset 清回 null', () {
+      c.quickSetPairOffset(3);
+      c.quickResetPairOffset();
+      expect(c.state.quick.userPairOffset, isNull);
+    });
+
+    test('切 ISO/COMP/FILTER 不重置 userPairOffset', () {
+      c.quickSetPairOffset(1);
+      c.setIso(IsoValue(800));
+      c.quickSetComp(EvStop.thirds(1));
+      c.quickSetFilter(NdFilter.nd4);
+      expect(c.state.quick.userPairOffset, 1);
+    });
   });
 }
