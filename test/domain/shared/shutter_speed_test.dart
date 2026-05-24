@@ -53,8 +53,8 @@ void main() {
       expect(ShutterSpeed.fullStops.first.display, '30s');
       expect(ShutterSpeed.fullStops.last.display, '1/8000');
       expect(
-        ShutterSpeed.fullStops.firstWhere((s) => s.display == '1/125'),
-        isNotNull,
+        ShutterSpeed.fullStops.map((s) => s.display),
+        contains('1/125'),
       );
     });
   });

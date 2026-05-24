@@ -11,7 +11,8 @@ class ShutterSpeed {
   }
 
   /// 仅供 [fullStops] 这类编译期合法常量使用，跳过运行时校验。
-  const ShutterSpeed._unchecked(this.seconds);
+  /// `assert` 仅在 debug 模式生效，作为编译期 ladder 数据的最后兜底。
+  const ShutterSpeed._unchecked(this.seconds) : assert(seconds > 0);
 
   final double seconds;
 
