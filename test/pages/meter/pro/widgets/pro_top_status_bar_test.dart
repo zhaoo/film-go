@@ -18,7 +18,7 @@ void main() {
   testWidgets('显示 ISO 与 comp（含正负号）', (tester) async {
     await tester.pumpWidget(_wrap(
       ProTopStatusBar(iso: IsoValue(400), comp: EvStop.thirds(-1)),
-    ));
+    ),);
     await tester.pumpAndSettle();
 
     expect(find.text('ISO 400'), findsOneWidget);
@@ -29,7 +29,7 @@ void main() {
   testWidgets('comp 为 0 时显示 0', (tester) async {
     await tester.pumpWidget(_wrap(
       ProTopStatusBar(iso: IsoValue(100), comp: EvStop.zero),
-    ));
+    ),);
     await tester.pumpAndSettle();
 
     expect(find.text('ISO 100'), findsOneWidget);

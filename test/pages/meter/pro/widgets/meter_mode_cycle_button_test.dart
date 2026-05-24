@@ -24,8 +24,8 @@ void main() {
           calls.add(m);
           setState(() => current = m);
         },
-      ));
-    }));
+      ),);
+    },),);
 
     await tester.tap(find.byType(MeterModeCycleButton));
     await tester.pumpAndSettle();

@@ -24,8 +24,8 @@ void main() {
   testWidgets('空 pairs：渲染中央 — 占位', (tester) async {
     await tester.pumpWidget(_wrap(
       const SizedBox(
-          height: 80, child: ScaleStrip(pairs: [], highlightIndex: 0)),
-    ));
+          height: 80, child: ScaleStrip(pairs: [], highlightIndex: 0),),
+    ),);
     await tester.pumpAndSettle();
     expect(find.text('—'), findsWidgets);
   });
@@ -42,7 +42,7 @@ void main() {
         width: 600,
         child: ScaleStrip(pairs: pairs, highlightIndex: 1),
       ),
-    ));
+    ),);
     await tester.pumpAndSettle();
     expect(find.text('f/2'), findsOneWidget);
     expect(find.text('f/2.8'), findsOneWidget);

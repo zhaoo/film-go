@@ -25,7 +25,7 @@ void main() {
     var taps = 0;
     await tester.pumpWidget(_wrap(
       ShutterButton(busy: true, onTap: () => taps++),
-    ));
+    ),);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.tap(find.byType(ShutterButton), warnIfMissed: false);
     await tester.pump();

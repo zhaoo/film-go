@@ -20,7 +20,7 @@ void main() {
         height: 400,
         child: SpotOverlay(center: Offset(0.5, 0.5), visible: false),
       ),
-    ));
+    ),);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('spot-frame')), findsNothing);
   });
@@ -32,7 +32,7 @@ void main() {
         height: 400,
         child: SpotOverlay(center: Offset(0.25, 0.5), visible: true),
       ),
-    ));
+    ),);
     await tester.pumpAndSettle();
 
     final frame = find.byKey(const ValueKey('spot-frame'));

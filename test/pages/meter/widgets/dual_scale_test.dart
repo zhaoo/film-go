@@ -38,7 +38,7 @@ void main() {
       pairs: _pairs(),
       activeIndex: 2,
       onIndexChanged: (_) {},
-    ));
+    ),);
     await tester.pumpAndSettle();
     expect(find.text('1/125'), findsOneWidget);
     expect(find.text('f/4'), findsOneWidget);
@@ -49,7 +49,7 @@ void main() {
       pairs: const [],
       activeIndex: 0,
       onIndexChanged: (_) {},
-    ));
+    ),);
     expect(find.text('—'), findsWidgets);
   });
 
@@ -66,7 +66,7 @@ void main() {
           onIndexChanged: (_) {},
         );
       },
-    ));
+    ),);
     await tester.pumpAndSettle();
     expect(find.text('1/125'), findsOneWidget);
 
@@ -84,7 +84,7 @@ void main() {
       pairs: pairs,
       activeIndex: 2,
       onIndexChanged: notifications.add,
-    ));
+    ),);
     await tester.pumpAndSettle();
 
     // 两列 ListWheelScrollView，深度优先遍历下左列在 first。
@@ -107,7 +107,7 @@ void main() {
       pairs: pairs,
       activeIndex: 2,
       onIndexChanged: notifications.add,
-    ));
+    ),);
     await tester.pumpAndSettle();
 
     final wheels = find.byType(ListWheelScrollView);

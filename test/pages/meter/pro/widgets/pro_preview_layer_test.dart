@@ -18,7 +18,7 @@ void main() {
           ),
         ),
       ),
-    ));
+    ),);
 
     // 点击预览中的 (50, 200) → 归一化 (0.25, 0.5)
     final r = tester.getRect(find.byType(ProPreviewLayer));

@@ -51,7 +51,7 @@ void main() {
     final c = MeterController(store: _Store())..bootstrap();
     c.setMetadataSupported(true);
     c.processCameraMetadata(
-        _meta(sensorIso: 200, exposureSec: 1 / 60, aperture: 1.8));
+        _meta(sensorIso: 200, exposureSec: 1 / 60, aperture: 1.8),);
     c.processCameraFrame(_solid(20, 20, 128));
 
     final reading = c.state.quick.metered!;

@@ -226,7 +226,7 @@ class _Wheel extends StatelessWidget {
           final style = highlight
               ? base?.copyWith(fontWeight: FontWeight.w800)
               : base?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant);
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,);
           return Center(child: Text(builder(i), style: style));
         },
       ),
