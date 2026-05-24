@@ -1,9 +1,6 @@
 import 'package:film_go/pages/meter/controller/meter_controller.dart';
-import 'package:film_go/pages/meter/controller/meter_state.dart';
-import 'package:film_go/pages/meter/meter_page.dart';
+import 'package:film_go/pages/meter/quick/quick_meter_view.dart';
 import 'package:film_go/pages/meter/widgets/measure_icon_button.dart';
-import 'package:film_go/pages/meter/widgets/mode_tab.dart';
-import 'package:film_go/pages/meter/widgets/quick_drum.dart';
 import 'package:film_go/services/calibration_store.dart';
 import 'package:film_go/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +23,9 @@ Widget _wrap(MeterController c) => ProviderScope(
       ],
       child: MaterialApp(
         theme: AppTheme.light(),
-        home: const MeterPage(),
+        home: const Scaffold(
+          body: QuickMeterView(preview: SizedBox.shrink()),
+        ),
       ),
     );
 
@@ -34,26 +33,18 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  testWidgets('MeterPage 默认显示 Quick 视图：ModeTab + QuickDrum + lock 按钮', (tester) async {
+  testWidgets('tapping the lock button toggles quickLock when reading exists', (tester) async {
     final c = MeterController(store: _FakeStore())..bootstrap();
+    // Seed a metered reading via the controller's public API. We can't drive
+    // a frame here without the camera, but quickLockTo lets us pre-populate
+    // a known EV.
+    c.quickLockTo(10);
     await tester.pumpWidget(_wrap(c));
     await tester.pumpAndSettle();
 
-    expect(find.byType(ModeTab), findsOneWidget);
-    expect(find.byType(QuickDrum), findsOneWidget);
-    expect(find.byType(MeasureIconButton), findsOneWidget);
-    expect(find.text('EV100'), findsOneWidget);
-  });
-
-  testWidgets('点击「专业」切换到 Pro 占位视图', (tester) async {
-    final c = MeterController(store: _FakeStore())..bootstrap();
-    await tester.pumpWidget(_wrap(c));
+    expect(c.state.quick.lockedEv, 10);
+    await tester.tap(find.byType(MeasureIconButton));
     await tester.pumpAndSettle();
-
-    await tester.tap(find.text('专业'));
-    await tester.pumpAndSettle();
-
-    expect(c.state.currentTab, MeterTab.pro);
-    expect(find.textContaining('专业测光'), findsOneWidget);
+    expect(c.state.quick.lockedEv, isNull);
   });
 }

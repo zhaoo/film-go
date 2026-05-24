@@ -61,6 +61,10 @@ class MeterController extends ChangeNotifier {
   void quickUnlock() =>
       _set(_state.copyWith(quick: _state.quick.copyWith(lockedEv: null)));
 
+  /// 直接把 quick 锁定到一个具体 EV100（drum 的 EV100 列滚动用）。
+  void quickLockTo(double ev) =>
+      _set(_state.copyWith(quick: _state.quick.copyWith(lockedEv: ev)));
+
   // ---- pro ---------------------------------------------------------------
 
   void proSetComp(EvStop comp) =>
