@@ -50,6 +50,12 @@ class _ProMeterViewState extends ConsumerState<ProMeterView> {
           timestamp: DateTime.now(),
         ),
       );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('拍照失败：$e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _capturing = false);
     }

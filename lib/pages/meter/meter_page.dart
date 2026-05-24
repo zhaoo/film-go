@@ -14,6 +14,7 @@ import 'package:film_go/theme/app_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 /// 测光页骨架 + 相机/metadata 生命周期。
 ///
@@ -60,12 +61,22 @@ class _MeterPageState extends ConsumerState<MeterPage> {
           if (controller == null) {
             throw StateError('相机未初始化');
           }
-          final file = await controller.takePicture();
-          return Uint8List.fromList(await file.readAsBytes());
+          // takePicture() 与 image stream 互斥：先停帧流，拍完恢复。
+          await _camera.stop();
+          try {
+            final file = await controller.takePicture();
+            return Uint8List.fromList(await file.readAsBytes());
+          } finally {
+            await _camera.start();
+          }
         },
         saveToGallery: (bytes, name) async {
-          // image_gallery_saver 在 PR5 已加入依赖；此处占位，真机集成时
-          // 由 platform-specific MediaStore / PhotoKit 通道接管。
+          await ImageGallerySaver.saveImage(
+            bytes,
+            name: name,
+            quality: 90,
+            isReturnImagePathOfIOS: true,
+          );
         },
       );
       if (mounted) setState(() => _ready = true);
