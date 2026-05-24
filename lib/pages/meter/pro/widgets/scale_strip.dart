@@ -1,4 +1,5 @@
 import 'package:film_go/domain/metering/ev_calculator.dart';
+import 'package:film_go/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 const double _itemWidth = 64.0;
@@ -58,13 +59,16 @@ class _EmptyPlaceholder extends StatelessWidget {
   const _EmptyPlaceholder();
   @override
   Widget build(BuildContext context) {
-    const style = TextStyle(color: Colors.white60, fontSize: 14);
-    return const Center(
+    final style = TextStyle(
+      color: AppColors.paperWhite.withOpacity(0.60),
+      fontSize: 14,
+    );
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text('—', style: style),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text('—', style: style),
         ],
       ),
@@ -79,7 +83,9 @@ class _ScaleColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = highlight ? Colors.amber : Colors.white70;
+    final color = highlight
+        ? AppColors.spotHighlight
+        : AppColors.paperWhite.withOpacity(0.70);
     final weight = highlight ? FontWeight.w800 : FontWeight.w500;
     final style = TextStyle(
       color: color,

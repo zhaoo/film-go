@@ -1,3 +1,4 @@
+import 'package:film_go/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// 点测黄框。在父容器内按归一化坐标 [center] (0..1) 定位，56×56。
@@ -36,7 +37,7 @@ class SpotOverlay extends StatelessWidget {
               child: Container(
                 key: const ValueKey('spot-frame'),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.amber, width: 2),
+                  border: Border.all(color: AppColors.spotHighlight, width: 2),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),

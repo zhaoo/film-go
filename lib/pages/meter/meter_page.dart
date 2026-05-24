@@ -10,6 +10,7 @@ import 'package:film_go/pages/meter/widgets/mode_tab.dart';
 import 'package:film_go/services/camera_capture_service.dart';
 import 'package:film_go/services/camera_metadata_channel.dart';
 import 'package:film_go/services/camera_service.dart';
+import 'package:film_go/theme/app_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -107,7 +108,7 @@ class _MeterPageState extends ConsumerState<MeterPage> {
     final isPro = tab == MeterTab.pro;
     final preview = _buildPreview();
     return Scaffold(
-      backgroundColor: isPro ? Colors.black : null,
+      backgroundColor: isPro ? AppColors.charcoalBlack : null,
       body: SafeArea(
         child: Stack(
           children: [

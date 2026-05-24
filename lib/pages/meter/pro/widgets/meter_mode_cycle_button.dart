@@ -1,4 +1,5 @@
 import 'package:film_go/domain/metering/meter_mode.dart';
+import 'package:film_go/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -28,7 +29,7 @@ class MeterModeCycleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withOpacity(0.12),
+      color: AppColors.paperWhite.withOpacity(0.12),
       shape: const CircleBorder(),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -44,7 +45,7 @@ class MeterModeCycleButton extends StatelessWidget {
             child: Icon(
               _icon,
               key: ValueKey(mode),
-              color: Colors.white,
+              color: AppColors.paperWhite,
               size: 24,
             ),
           ),

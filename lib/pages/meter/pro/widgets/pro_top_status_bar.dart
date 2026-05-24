@@ -1,5 +1,6 @@
 import 'package:film_go/domain/shared/ev_stop.dart';
 import 'package:film_go/domain/shared/iso_value.dart';
+import 'package:film_go/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Pro 顶部状态栏：左 `ISO 400`，右 `EV: -1/3`。
@@ -18,7 +19,7 @@ class ProTopStatusBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const style = TextStyle(
-      color: Colors.white,
+      color: AppColors.paperWhite,
       fontSize: 14,
       fontWeight: FontWeight.w500,
     );

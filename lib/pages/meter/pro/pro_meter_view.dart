@@ -12,6 +12,7 @@ import 'package:film_go/pages/meter/pro/widgets/shutter_button.dart';
 import 'package:film_go/pages/meter/pro/widgets/spot_overlay.dart';
 import 'package:film_go/services/camera_capture_service.dart';
 import 'package:film_go/services/watermark_renderer.dart';
+import 'package:film_go/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -145,10 +146,14 @@ class _PreviewPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: Colors.black,
+    return ColoredBox(
+      color: AppColors.charcoalBlack,
       child: Center(
-        child: Icon(Icons.camera_alt_outlined, size: 48, color: Colors.white24),
+        child: Icon(
+          Icons.camera_alt_outlined,
+          size: 48,
+          color: AppColors.paperWhite.withOpacity(0.24),
+        ),
       ),
     );
   }

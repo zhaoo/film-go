@@ -1,4 +1,5 @@
 import 'package:film_go/domain/metering/ev_calculator.dart';
+import 'package:film_go/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Pro 左下大字读数：上行快门、下行光圈。
@@ -12,7 +13,7 @@ class ProReadout extends StatelessWidget {
     final shutter = pair?.shutter.display ?? '—';
     final aperture = pair?.aperture.display ?? '—';
     const style = TextStyle(
-      color: Colors.white,
+      color: AppColors.paperWhite,
       fontSize: 28,
       fontWeight: FontWeight.w700,
       height: 1.1,

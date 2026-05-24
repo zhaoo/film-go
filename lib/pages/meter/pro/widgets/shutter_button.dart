@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:film_go/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -49,16 +50,16 @@ class _ShutterButtonState extends State<ShutterButton> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.paperWhite,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
+                  border: Border.all(color: AppColors.paperWhite, width: 3),
                 ),
               ),
               Container(
                 width: size - 12,
                 height: size - 12,
                 decoration: const BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.paperWhite,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -66,9 +67,11 @@ class _ShutterButtonState extends State<ShutterButton> {
                 SizedBox(
                   width: size - 16,
                   height: size - 16,
-                  child: const CircularProgressIndicator(
+                  child: CircularProgressIndicator(
                     strokeWidth: 3,
-                    valueColor: AlwaysStoppedAnimation(Colors.black54),
+                    valueColor: AlwaysStoppedAnimation(
+                      AppColors.charcoalBlack.withOpacity(0.54),
+                    ),
                   ),
                 ),
             ],
