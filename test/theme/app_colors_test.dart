@@ -41,6 +41,7 @@ void main() {
       expect(dl, lessThan(AppColors.paperWhite.computeLuminance()));
       expect(dl, greaterThan(AppColors.charcoalBlack.computeLuminance()));
       expect(ml, lessThan(dl), reason: 'muted 比 divider 更暗');
+      expect(ml, greaterThan(AppColors.charcoalBlack.computeLuminance()));
     });
 
     test('darkroomRed 与 spotHighlight 是唯二非中性强调', () {

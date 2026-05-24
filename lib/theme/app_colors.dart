@@ -26,8 +26,12 @@ class AppColors {
   static const Color muted = Color(0xFF6F665C);
 
   // 强调色（语义保留）
+
+  /// 唯一语义强调色，仅限：① 错误/告警态（ColorScheme.error）；
+  /// ② 暗房录制/危险操作指示。禁止当作装饰色使用。
   static const Color darkroomRed = Color(0xFFB33A2A);
 
-  /// Pro 视图 spot 框 / 高亮选中带，胶片调暖黄。
+  /// Pro 视图 spot 框 / 滚轮中央高亮带 / 当前选中刻度专用，
+  /// 胶片调暖黄；不用于通用强调或装饰。
   static const Color spotHighlight = Color(0xFFE8C77A);
 }
