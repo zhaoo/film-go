@@ -36,7 +36,11 @@ class QuickMeterView extends ConsumerWidget {
     final pairs = evEff == null
         ? const <ExposurePair>[]
         : EvCalculator.suggestPairs(ev: evEff, iso: iso.value);
-    final highlightIndex = pairs.isEmpty ? 0 : pairs.length ~/ 2;
+    final center = pairs.isEmpty ? 0 : pairs.length ~/ 2;
+    final offset = s.quick.userPairOffset ?? 0;
+    final activeIndex = pairs.isEmpty
+        ? 0
+        : (center + offset).clamp(0, pairs.length - 1);
 
     final ev100Int =
         (liveEv100 ?? 10).round().clamp(QuickDrum.evMin, QuickDrum.evMax);
@@ -50,10 +54,12 @@ class QuickMeterView extends ConsumerWidget {
               child: Row(
                 children: [
                   SizedBox(
-                    width: 120,
+                    width: 140,
                     child: DualScale(
                       pairs: pairs,
-                      highlightIndex: highlightIndex,
+                      activeIndex: activeIndex,
+                      onIndexChanged: (i) =>
+                          c.quickSetPairOffset(i - center),
                     ),
                   ),
                   const SizedBox(width: 12),
