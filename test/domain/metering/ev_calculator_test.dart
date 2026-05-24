@@ -51,5 +51,34 @@ void main() {
       expect(hasSunny16, isTrue);
       expect(pairs, isNotEmpty);
     });
+
+    test('每个 pair 的快门都来自 ShutterSpeed.fullStops', () {
+      final pairs = EvCalculator.suggestPairs(ev: 12, iso: 100);
+      expect(pairs, isNotEmpty);
+      for (final p in pairs) {
+        final hit = ShutterSpeed.fullStops.any(
+          (s) => (s.seconds - p.shutter.seconds).abs() < 1e-9,
+        );
+        expect(hit, isTrue, reason: '${p.shutter.display} 不在 fullStops');
+      }
+    });
+
+    test('理论快门与最近整档误差 > 0.5 stop 时丢弃该光圈', () {
+      // EV 0, ISO 100: f/1 → 1s（整档完美命中）
+      // f/64 → 4096s，远超 30s，应丢弃
+      final pairs = EvCalculator.suggestPairs(ev: 0, iso: 100);
+      expect(pairs.any((p) => p.aperture.fNumber == 1.0), isTrue);
+      expect(pairs.any((p) => p.aperture.fNumber == 64.0), isFalse);
+    });
+
+    test('结果按光圈递增排序', () {
+      final pairs = EvCalculator.suggestPairs(ev: 13, iso: 100);
+      for (var i = 1; i < pairs.length; i++) {
+        expect(
+          pairs[i].aperture.fNumber,
+          greaterThan(pairs[i - 1].aperture.fNumber),
+        );
+      }
+    });
   });
 }
