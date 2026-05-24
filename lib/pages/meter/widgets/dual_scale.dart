@@ -27,7 +27,10 @@ class DualScale extends StatefulWidget {
 class _DualScaleState extends State<DualScale> {
   late FixedExtentScrollController _leftCtrl;
   late FixedExtentScrollController _rightCtrl;
-  bool _syncing = false;
+  // 拆为两列各自的同步标志：一列被自动 animate 时只屏蔽该列的
+  // onSelectedItemChanged 回调，另一列的用户拖拽仍能被识别。
+  bool _leftSyncing = false;
+  bool _rightSyncing = false;
 
   int get _clampedActive {
     if (widget.pairs.isEmpty) return 0;
@@ -46,24 +49,45 @@ class _DualScaleState extends State<DualScale> {
     super.didUpdateWidget(old);
     if (widget.pairs.isEmpty) return;
     final target = _clampedActive;
-    final futures = <Future<void>>[];
-    if (_leftCtrl.hasClients && _leftCtrl.selectedItem != target) {
-      futures.add(_leftCtrl.animateToItem(
-        target,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-      ));
+
+    // Pending-mount: pairs 由空变非空时，wheels 此刻还没挂载、controllers 没有
+    // clients。controllers 是在 initState（pairs 还空、_clampedActive=0）时创建
+    // 的，因此 wheels 即将以 initialItem=0 挂载。等帧结束 jumpToItem 到目标位置，
+    // 避免轮子卡在 index 0。
+    if (!_leftCtrl.hasClients || !_rightCtrl.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_leftCtrl.hasClients && _leftCtrl.selectedItem != target) {
+          _leftCtrl.jumpToItem(target);
+        }
+        if (_rightCtrl.hasClients && _rightCtrl.selectedItem != target) {
+          _rightCtrl.jumpToItem(target);
+        }
+      });
+      return;
     }
-    if (_rightCtrl.hasClients && _rightCtrl.selectedItem != target) {
-      futures.add(_rightCtrl.animateToItem(
-        target,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-      ));
+
+    // 每列独立判断：已经在同步中的列就跳过，避免 _onLeft 触发的右列动画在父层
+    // setState 反喂回来时被 didUpdateWidget 再次启动一遍（重复 easing）。
+    if (!_leftSyncing && _leftCtrl.selectedItem != target) {
+      _leftSyncing = true;
+      _leftCtrl
+          .animateToItem(
+            target,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          )
+          .whenComplete(() => _leftSyncing = false);
     }
-    if (futures.isNotEmpty) {
-      _syncing = true;
-      Future.wait(futures).whenComplete(() => _syncing = false);
+    if (!_rightSyncing && _rightCtrl.selectedItem != target) {
+      _rightSyncing = true;
+      _rightCtrl
+          .animateToItem(
+            target,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          )
+          .whenComplete(() => _rightSyncing = false);
     }
   }
 
@@ -74,22 +98,37 @@ class _DualScaleState extends State<DualScale> {
     super.dispose();
   }
 
-  void _onLeft(int i) => _onAny(i, other: _rightCtrl);
-  void _onRight(int i) => _onAny(i, other: _leftCtrl);
-
-  void _onAny(int i, {required FixedExtentScrollController other}) {
-    if (_syncing) return;
+  void _onLeft(int i) {
+    // 只有当 LEFT 本身正在被自动 animate 时才忽略；RIGHT 在同步中不应屏蔽
+    // 用户对 LEFT 的手动拖拽。
+    if (_leftSyncing) return;
     if (i == widget.activeIndex) return;
     widget.onIndexChanged(i);
-    if (other.hasClients && other.selectedItem != i) {
-      _syncing = true;
-      other
+    if (_rightCtrl.hasClients && _rightCtrl.selectedItem != i) {
+      _rightSyncing = true;
+      _rightCtrl
           .animateToItem(
             i,
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
           )
-          .whenComplete(() => _syncing = false);
+          .whenComplete(() => _rightSyncing = false);
+    }
+  }
+
+  void _onRight(int i) {
+    if (_rightSyncing) return;
+    if (i == widget.activeIndex) return;
+    widget.onIndexChanged(i);
+    if (_leftCtrl.hasClients && _leftCtrl.selectedItem != i) {
+      _leftSyncing = true;
+      _leftCtrl
+          .animateToItem(
+            i,
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+          )
+          .whenComplete(() => _leftSyncing = false);
     }
   }
 

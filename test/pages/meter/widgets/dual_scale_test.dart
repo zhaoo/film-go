@@ -98,4 +98,26 @@ void main() {
     expect(notifications, isNotEmpty);
     expect(notifications.last, greaterThan(2));
   });
+
+  testWidgets('滚动右列触发 onIndexChanged，并把左列同步滚到该 index',
+      (tester) async {
+    final pairs = _pairs();
+    final notifications = <int>[];
+    await tester.pumpWidget(_host(
+      pairs: pairs,
+      activeIndex: 2,
+      onIndexChanged: notifications.add,
+    ));
+    await tester.pumpAndSettle();
+
+    final wheels = find.byType(ListWheelScrollView);
+    expect(wheels, findsNWidgets(2));
+
+    // 上滑右列 = index 增加
+    await tester.drag(wheels.last, const Offset(0, -64));
+    await tester.pumpAndSettle();
+
+    expect(notifications, isNotEmpty);
+    expect(notifications.last, greaterThan(2));
+  });
 }
