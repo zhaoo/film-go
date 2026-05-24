@@ -29,4 +29,33 @@ void main() {
       );
     });
   });
+
+  group('ShutterSpeed.fullStops', () {
+    test('包含 30s 起到 1/8000 共 19 档', () {
+      expect(ShutterSpeed.fullStops.length, 19);
+      expect(ShutterSpeed.fullStops.first.seconds, 30.0);
+      expect(ShutterSpeed.fullStops.last.seconds, closeTo(1 / 8000, 1e-9));
+    });
+
+    test('档与档之间近似差 1 stop（log2 比值 ≈ 1）', () {
+      for (var i = 1; i < ShutterSpeed.fullStops.length; i++) {
+        final prev = ShutterSpeed.fullStops[i - 1].seconds;
+        final cur = ShutterSpeed.fullStops[i].seconds;
+        // 序列是慢→快，所以 prev > cur
+        final stops = (prev / cur);
+        // 允许 1/2..1/4..1/8 vs 1/15 这种历史习惯偏差
+        expect(stops, greaterThanOrEqualTo(1.6));
+        expect(stops, lessThanOrEqualTo(2.2));
+      }
+    });
+
+    test('display 字符串符合摄影惯例', () {
+      expect(ShutterSpeed.fullStops.first.display, '30s');
+      expect(ShutterSpeed.fullStops.last.display, '1/8000');
+      expect(
+        ShutterSpeed.fullStops.firstWhere((s) => s.display == '1/125'),
+        isNotNull,
+      );
+    });
+  });
 }
