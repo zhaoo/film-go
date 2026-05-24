@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('renders one row per pair with shutter and aperture', (tester) async {
+  testWidgets('renders one row per pair with shutter and aperture',
+      (tester) async {
     final pairs = [
       ExposurePair(
         aperture: Aperture(2.8),

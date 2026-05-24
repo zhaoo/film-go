@@ -38,9 +38,8 @@ class QuickMeterView extends ConsumerWidget {
         : EvCalculator.suggestPairs(ev: evEff, iso: iso.value);
     final highlightIndex = pairs.isEmpty ? 0 : pairs.length ~/ 2;
 
-    final ev100Int = (liveEv100 ?? 10)
-        .round()
-        .clamp(QuickDrum.evMin, QuickDrum.evMax);
+    final ev100Int =
+        (liveEv100 ?? 10).round().clamp(QuickDrum.evMin, QuickDrum.evMax);
 
     return SafeArea(
       child: Padding(

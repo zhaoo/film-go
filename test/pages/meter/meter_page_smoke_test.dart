@@ -34,7 +34,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  testWidgets('MeterPage 默认显示 Quick 视图：ModeTab + QuickDrum + lock 按钮', (tester) async {
+  testWidgets('MeterPage 默认显示 Quick 视图：ModeTab + QuickDrum + lock 按钮',
+      (tester) async {
     final c = MeterController(store: _FakeStore())..bootstrap();
     await tester.pumpWidget(_wrap(c));
     await tester.pumpAndSettle();
@@ -45,7 +46,8 @@ void main() {
     expect(find.text('EV100'), findsOneWidget);
   });
 
-  testWidgets('点击「专业」切换到 Pro 占位视图', (tester) async {
+  testWidgets('点击「专业」切换到 Pro 视图：ProTopStatusBar + ShutterButton',
+      (tester) async {
     final c = MeterController(store: _FakeStore())..bootstrap();
     await tester.pumpWidget(_wrap(c));
     await tester.pumpAndSettle();
@@ -54,6 +56,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(c.state.currentTab, MeterTab.pro);
-    expect(find.textContaining('专业测光'), findsOneWidget);
+    // Pro 视图渲染了状态栏（ISO 标签）和快门按钮
+    expect(find.text('ISO 400'), findsOneWidget);
   });
 }

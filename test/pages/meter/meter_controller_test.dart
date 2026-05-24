@@ -121,7 +121,8 @@ void main() {
       expect(c.state.quick.metered, isNull);
     });
 
-    test('applyCalibrationFromLastReading writes offset and adjusts shared', () async {
+    test('applyCalibrationFromLastReading writes offset and adjusts shared',
+        () async {
       c.processCameraFrame(_solid(10, 10, 128));
       final raw = c.state.quick.metered!.ev;
       await c.applyCalibrationFromLastReading(targetEv: 12);

@@ -33,7 +33,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  testWidgets('tapping the lock button toggles quickLock when reading exists', (tester) async {
+  testWidgets('tapping the lock button toggles quickLock when reading exists',
+      (tester) async {
     final c = MeterController(store: _FakeStore())..bootstrap();
     // Seed a metered reading via the controller's public API. We can't drive
     // a frame here without the camera, but quickLockTo lets us pre-populate

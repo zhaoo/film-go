@@ -65,7 +65,8 @@ class _QuickDrumState extends State<QuickDrum> {
       initialItem: _isoIndex(widget.iso),
     );
     _compCtrl = FixedExtentScrollController(
-      initialItem: _compList.indexOf(widget.comp).clamp(0, _compList.length - 1),
+      initialItem:
+          _compList.indexOf(widget.comp).clamp(0, _compList.length - 1),
     );
     _filterCtrl = FixedExtentScrollController(
       initialItem: widget.filter.index,

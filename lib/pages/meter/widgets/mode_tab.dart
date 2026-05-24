@@ -71,7 +71,11 @@ class _Segment extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: selected ? cs.onPrimary : cs.onSurface),
+              Icon(
+                icon,
+                size: 18,
+                color: selected ? cs.onPrimary : cs.onSurface,
+              ),
               const SizedBox(width: 6),
               Text(
                 label,
