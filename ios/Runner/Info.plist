@@ -46,6 +46,8 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Film Go 使用相机进行取景测光，不会拍摄或上传任何照片。</string>
+	<string>Film Go 使用相机进行取景测光，并在你按下快门时拍摄带测光读数水印的参考照片。</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>保存带水印的测光参考照片到相册。</string>
 </dict>
 </plist>
