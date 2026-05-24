@@ -29,6 +29,27 @@ subprojects {
                     }
                 }
             }
+            // 强制对齐 JVM target，防止 image_gallery_saver 等老插件
+            // 出现 Kotlin(17) vs Java(1.8) target 冲突；同时把过老的
+            // compileSdk 拉到 34（lStar 等 attr 在 31 后才存在）。
+            if (androidExt != null) {
+                androidExt.compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+                if (androidExt.hasProperty("compileSdkVersion") && androidExt.compileSdkVersion != null) {
+                    def current = androidExt.compileSdkVersion.toString()
+                    def num = (current =~ /\d+/).find { true }
+                    if (num != null && num.toInteger() < 34) {
+                        androidExt.compileSdkVersion 34
+                    }
+                }
+            }
+            project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                kotlinOptions {
+                    jvmTarget = "17"
+                }
+            }
         }
     }
 }
