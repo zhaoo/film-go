@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:film_go/domain/metering/meter_mode.dart';
@@ -9,6 +10,15 @@ class SpotCenter {
   const SpotCenter(this.x, this.y);
   final double x;
   final double y;
+}
+
+/// 输入字节图的灰度编码格式。
+enum LumaFormat {
+  /// YUV420 Y 平面，limited range：黑=16，白=235。
+  yuvLimited,
+
+  /// 来自 BGRA → 单通道灰度的 full range：黑=0，白=255。
+  fullRange,
 }
 
 /// 从灰度缓冲区按测光模式提取平均亮度（0..255）。
@@ -33,6 +43,38 @@ class LuminanceExtractor {
         _centerWeighted(bytes, width, height, bytesPerRow),
       MeterMode.spot => _spot(bytes, width, height, bytesPerRow, spotCenter),
     };
+  }
+
+  /// 提取 ROI 平均灰度并做"limited-range 修正 + sRGB 反 gamma"，输出 0..1 的
+  /// 线性灰度 yLinear，用于 [LuminanceToEv.fromCameraFrame]。
+  static double extractLinear({
+    required Uint8List bytes,
+    required int width,
+    required int height,
+    required int bytesPerRow,
+    required MeterMode mode,
+    required LumaFormat format,
+    SpotCenter? spotCenter,
+  }) {
+    final mean = extract(
+      bytes: bytes,
+      width: width,
+      height: height,
+      bytesPerRow: bytesPerRow,
+      mode: mode,
+      spotCenter: spotCenter,
+    );
+    final yNorm = switch (format) {
+      LumaFormat.yuvLimited => ((mean - 16) / 219).clamp(0.0, 1.0),
+      LumaFormat.fullRange => (mean / 255).clamp(0.0, 1.0),
+    };
+    return _srgbInverseGamma(yNorm.toDouble());
+  }
+
+  /// sRGB 反 gamma：把 0..1 的 gamma 编码灰度还原成线性灰度。
+  static double _srgbInverseGamma(double y) {
+    if (y <= 0.04045) return y / 12.92;
+    return math.pow((y + 0.055) / 1.055, 2.4).toDouble();
   }
 
   static double _rectMean(
