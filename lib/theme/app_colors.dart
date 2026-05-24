@@ -1,25 +1,33 @@
 import 'package:flutter/material.dart';
 
-/// Film Go 黑白色板。
+/// Film Go 暖灰胶片色板。
 ///
-/// 全局唯一允许的非黑白色是 [darkroomRed]，仅用于：
-///   ① 测光“超出范围”警示
-///   ② 冲洗计时器氛围
-/// 任何其他场景禁止使用红色或彩色。
+/// 摒弃严格黑白二元，改为带轻微暖调的纸感与炭黑：
+/// - 中性背景 / 前景以 paperWhite / charcoalBlack 为锚
+/// - 两级 surface 用于卡片、滚轮高亮带、底栏
+/// - 强调色保留暗房红（darkroomRed）与 spot 暖黄（spotHighlight）
 class AppColors {
   const AppColors._();
 
-  // 主色
-  static const Color black = Color(0xFF0A0A0A);
-  static const Color white = Color(0xFFFAFAFA);
+  // 主底色 / 前景
+  static const Color paperWhite = Color(0xFFF5F1EA);
+  static const Color charcoalBlack = Color(0xFF1B1816);
 
-  // 5 级灰阶（深→浅）
-  static const Color gray900 = Color(0xFF1F1F1F);
-  static const Color gray700 = Color(0xFF3A3A3A);
-  static const Color gray500 = Color(0xFF6B6B6B);
-  static const Color gray300 = Color(0xFFB5B5B5);
-  static const Color gray100 = Color(0xFFE5E5E5);
+  // light 模式 surface 层级（自底向高）
+  static const Color surfaceLowLight = Color(0xFFDDD6C8);
+  static const Color surfaceHighLight = Color(0xFFECE6DC);
 
-  // 唯一强调色
-  static const Color darkroomRed = Color(0xFFC8302A);
+  // dark 模式 surface 层级（自底向高）
+  static const Color surfaceLowDark = Color(0xFF221E1B);
+  static const Color surfaceHighDark = Color(0xFF2A2522);
+
+  // 中性辅助
+  static const Color divider = Color(0xFFBDB4A4);
+  static const Color muted = Color(0xFF6F665C);
+
+  // 强调色（语义保留）
+  static const Color darkroomRed = Color(0xFFB33A2A);
+
+  /// Pro 视图 spot 框 / 高亮选中带，胶片调暖黄。
+  static const Color spotHighlight = Color(0xFFE8C77A);
 }

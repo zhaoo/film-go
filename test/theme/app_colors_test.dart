@@ -4,30 +4,48 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('AppColors', () {
-    test('黑白主色 hex 与 spec 一致', () {
-      expect(AppColors.black.value, 0xFF0A0A0A);
-      expect(AppColors.white.value, 0xFFFAFAFA);
+    test('paperWhite / charcoalBlack hex 与 spec 一致', () {
+      expect(AppColors.paperWhite.value, 0xFFF5F1EA);
+      expect(AppColors.charcoalBlack.value, 0xFF1B1816);
     });
 
-    test('灰阶 5 级单调递增', () {
-      final grays = <Color>[
-        AppColors.gray900,
-        AppColors.gray700,
-        AppColors.gray500,
-        AppColors.gray300,
-        AppColors.gray100,
-      ];
-      for (var i = 1; i < grays.length; i++) {
-        expect(
-          grays[i].computeLuminance() > grays[i - 1].computeLuminance(),
-          isTrue,
-          reason: 'gray index $i 应比上一个更亮',
-        );
-      }
+    test('light surface 层级亮度: bg > surfaceHigh > surfaceLow', () {
+      expect(
+        AppColors.paperWhite.computeLuminance() >
+            AppColors.surfaceHighLight.computeLuminance(),
+        isTrue,
+      );
+      expect(
+        AppColors.surfaceHighLight.computeLuminance() >
+            AppColors.surfaceLowLight.computeLuminance(),
+        isTrue,
+      );
     });
 
-    test('暗房红是唯一允许的彩色', () {
-      expect(AppColors.darkroomRed.value, 0xFFC8302A);
+    test('dark surface 层级亮度: surfaceHigh > surfaceLow > bg', () {
+      expect(
+        AppColors.surfaceHighDark.computeLuminance() >
+            AppColors.surfaceLowDark.computeLuminance(),
+        isTrue,
+      );
+      expect(
+        AppColors.surfaceLowDark.computeLuminance() >
+            AppColors.charcoalBlack.computeLuminance(),
+        isTrue,
+      );
+    });
+
+    test('divider / muted 在前/背景之间', () {
+      final dl = AppColors.divider.computeLuminance();
+      final ml = AppColors.muted.computeLuminance();
+      expect(dl, lessThan(AppColors.paperWhite.computeLuminance()));
+      expect(dl, greaterThan(AppColors.charcoalBlack.computeLuminance()));
+      expect(ml, lessThan(dl), reason: 'muted 比 divider 更暗');
+    });
+
+    test('darkroomRed 与 spotHighlight 是唯二非中性强调', () {
+      expect(AppColors.darkroomRed.value, 0xFFB33A2A);
+      expect(AppColors.spotHighlight.value, 0xFFE8C77A);
     });
   });
 }
