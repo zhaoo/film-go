@@ -143,8 +143,11 @@ void main() {
         format: LumaFormat.yuvLimited,
         spotCenter: const SpotCenter(0.86, 0.87),
       );
-      expect(v, greaterThan(0.4),
-          reason: 'spot inside the bright patch should be bright');
+      expect(
+        v,
+        greaterThan(0.4),
+        reason: 'spot inside the bright patch should be bright',
+      );
     });
   });
 }
