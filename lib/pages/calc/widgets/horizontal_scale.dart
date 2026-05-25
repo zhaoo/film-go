@@ -36,12 +36,16 @@ class _HorizontalScaleState extends State<HorizontalScale> {
 
   void _ensureController(double width) {
     if (_ctrl != null && _builtForWidth == width) return;
+    // 保留用户当前滚动位置（旋转/parent rebuild 等微调宽度时不要跳回 activeIndex）
+    final preserved = _ctrl?.hasClients == true
+        ? (_ctrl!.page?.round() ?? _clamped)
+        : _clamped;
     _ctrl?.dispose();
     final raw = widget.itemExtent / width;
     final vp = raw.clamp(0.15, 1.0);
     _ctrl = PageController(
       viewportFraction: vp.toDouble(),
-      initialPage: _clamped,
+      initialPage: preserved.clamp(0, widget.labels.length - 1),
     );
     _builtForWidth = width;
   }
@@ -49,11 +53,14 @@ class _HorizontalScaleState extends State<HorizontalScale> {
   @override
   void didUpdateWidget(covariant HorizontalScale old) {
     super.didUpdateWidget(old);
+    if (widget.labels.isEmpty) return;
     final c = _ctrl;
     if (c == null || !c.hasClients) return;
     final target = _clamped;
     final current = c.page?.round() ?? c.initialPage;
     if (_syncing || current == target) return;
+    // 注意：父层在 200ms 内连续 push activeIndex 时，中间目标会被丢弃；
+    // 调用者应限速，或等待动画完成后再触发下一次外部同步。
     _syncing = true;
     c
         .animateToPage(
@@ -61,7 +68,10 @@ class _HorizontalScaleState extends State<HorizontalScale> {
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
         )
-        .whenComplete(() => _syncing = false);
+        .whenComplete(() {
+      if (!mounted) return;
+      _syncing = false;
+    });
   }
 
   @override
