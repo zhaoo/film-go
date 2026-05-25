@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_title">Film·Go</string>
+    <string name="widget_empty_hint">按下方按钮测光</string>
+    <string name="widget_loading">测光中…</string>
+    <string name="widget_btn_measure">测</string>
+    <string name="widget_btn_remeasure">再测</string>
+    <string name="widget_btn_open_app">打开 App</string>
+    <string name="widget_err_no_sensor">设备无环境光传感器</string>
+    <string name="widget_err_timeout_first">测光超时，再试一次</string>
+    <string name="widget_err_timeout_again">上次超时，再试一次</string>
+    <string name="widget_err_out_of_range">超出快门范围</string>
+    <string name="widget_quick_meter_label">Film·Go 快速测光</string>
+</resources>
