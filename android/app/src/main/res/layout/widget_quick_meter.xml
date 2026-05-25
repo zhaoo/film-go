@@ -30,7 +30,8 @@
             android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:singleLine="true"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:text="@string/widget_empty_hint" />
 
         <TextView
@@ -39,7 +40,8 @@
             android:layout_height="wrap_content"
             android:textColor="#B0B0B0"
             android:textSize="12sp"
-            android:singleLine="true"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:visibility="gone" />
 
         <TextView
@@ -48,7 +50,8 @@
             android:layout_height="wrap_content"
             android:textColor="#FF9F9F"
             android:textSize="11sp"
-            android:singleLine="true"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:visibility="gone" />
     </LinearLayout>
 

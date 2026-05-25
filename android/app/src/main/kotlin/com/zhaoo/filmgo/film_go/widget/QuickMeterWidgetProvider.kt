@@ -66,13 +66,7 @@ class QuickMeterWidgetProvider : AppWidgetProvider() {
                             ExposureMath.suggestPairs(ev, prefs.iso),
                         )
                         if (pair == null) {
-                            // 仍记录 EV，但走 OUT_OF_RANGE 文案
-                            prefs.writeResult(
-                                ev = ev,
-                                apertureFNumber = prefs.lastApertureFNumber ?: 8.0,
-                                shutterSeconds = prefs.lastShutterSeconds ?: (1.0 / 125.0),
-                                takenAtMillis = System.currentTimeMillis(),
-                            )
+                            // 不写入假的 aperture/shutter，避免后续误展示为真实读数
                             prefs.writeError("OUT_OF_RANGE")
                         } else {
                             prefs.writeResult(
@@ -85,11 +79,12 @@ class QuickMeterWidgetProvider : AppWidgetProvider() {
                     }
                 }
             } catch (t: Throwable) {
+                android.util.Log.w("QuickMeterWidget", "measure failed", t)
                 prefs.writeError("TIMEOUT")  // 任何意外异常按超时处理
             } finally {
                 pushAllWidgets(appCtx)
                 inFlight.set(false)
-                pending.finish()
+                runCatching { pending.finish() }
             }
         }
     }
@@ -122,15 +117,22 @@ class QuickMeterWidgetProvider : AppWidgetProvider() {
         val taken = prefs.lastTakenAt
 
         when {
-            loading -> renderLoading(views)
+            loading -> renderLoading(views, context)
             error == "NO_SENSOR" -> renderPermanentError(views, context)
             error == "TIMEOUT" && taken == 0L ->
                 renderEmptyWithMessage(views, context.getString(R.string.widget_err_timeout_first))
             error == "TIMEOUT" && taken > 0L ->
                 renderResult(views, context, prefs,
                     footnote = context.getString(R.string.widget_err_timeout_again))
-            error == "OUT_OF_RANGE" -> renderResult(views, context, prefs,
-                secondaryOverride = context.getString(R.string.widget_err_out_of_range))
+            error == "OUT_OF_RANGE" -> {
+                if (taken > 0L && prefs.lastEv != null) {
+                    renderResult(views, context, prefs,
+                        secondaryOverride = context.getString(R.string.widget_err_out_of_range))
+                } else {
+                    renderEmptyWithMessage(views,
+                        context.getString(R.string.widget_err_out_of_range))
+                }
+            }
             taken > 0L -> renderResult(views, context, prefs)
             else -> renderEmpty(views, context)
         }
@@ -154,8 +156,9 @@ class QuickMeterWidgetProvider : AppWidgetProvider() {
         views.setViewVisibility(R.id.widget_footnote_line, View.GONE)
     }
 
-    private fun renderLoading(views: RemoteViews) {
-        views.setTextViewText(R.id.widget_primary_line, "测光中…")
+    private fun renderLoading(views: RemoteViews, context: Context) {
+        views.setTextViewText(R.id.widget_primary_line,
+            context.getString(R.string.widget_loading))
         views.setViewVisibility(R.id.widget_secondary_line, View.GONE)
         views.setViewVisibility(R.id.widget_footnote_line, View.GONE)
     }
