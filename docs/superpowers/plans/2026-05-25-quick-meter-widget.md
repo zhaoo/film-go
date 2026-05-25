@@ -25,36 +25,22 @@
 
 # PR1 — Dart WidgetBridge
 
-## Task 1.1：验证 `shared_preferences` Android 端 key 前缀
+## Task 1.1：已验证 — shared_preferences_android 2.4.7 存储格式
 
-**Why:** Spec ⚠️待人工验证项。这一步用 `flutter test` 跑一个微测试或读插件源码确认插件在 Android 上把 key 加 `flutter.` 前缀、写到 `FlutterSharedPreferences` 文件。
+**已查实**（直接读 `~/.pub-cache/hosted/pub.flutter-io.cn/shared_preferences_android-2.4.7/android/src/main/kotlin/io/flutter/plugins/sharedpreferences/SharedPreferencesPlugin.kt` + `shared_preferences-2.5.3/lib/src/shared_preferences_legacy.dart`）：
 
-**Files:**
-- 仅读：`~/.pub-cache/hosted/pub.dev/shared_preferences_android-*/android/src/main/java/io/flutter/plugins/sharedpreferences/SharedPreferencesPlugin.java`（或类似路径）
+| 维度 | 实际值 |
+|---|---|
+| 文件 | `PreferenceManager.getDefaultSharedPreferences(context)` → **`{packageName}_preferences.xml`**（不是 `FlutterSharedPreferences`） |
+| Key 前缀 | `flutter.`（`shared_preferences_legacy.dart:22`） |
+| `setInt` 编码 | `putLong(key, value.toLong())` → Long |
+| `setDouble` 编码 | `putString(key, DOUBLE_PREFIX + value)` → **String**，其中 `DOUBLE_PREFIX = "VGhpcyBpcyB0aGUgcHJlZml4IGZvciBEb3VibGUu"`（base64 of `"This is the prefix for Double."`） |
+| `setBool` 编码 | `putBoolean(key, value)` → Boolean |
+| `setString` 编码 | `putString(key, value)` → String |
 
-- [ ] **Step 1：定位插件源**
+**结论：** Kotlin 端读 Dart `double` 必须按 String 读 + 去前缀 + `toDouble()`。读 Dart `int` 按 Long 读。这与本 plan 草稿原假设（float / long-bits 双路径）完全不同——Task 2.5 已按真实编码改正。
 
-Run:
-```bash
-find ~/.pub-cache -name "SharedPreferencesPlugin*" -path "*shared_preferences_android*" 2>/dev/null
-```
-Expected: 一个 `.java` 或 `.kt` 文件路径。
-
-- [ ] **Step 2：grep 出 prefix 与 prefs 文件名**
-
-Run:
-```bash
-grep -nE "SHARED_PREFERENCES_NAME|flutter\." "$(find ~/.pub-cache -name 'SharedPreferencesPlugin*' -path '*shared_preferences_android*' 2>/dev/null | head -1)"
-```
-Expected:
-- `SHARED_PREFERENCES_NAME = "FlutterSharedPreferences"`（或同义常量）
-- 前缀 `"flutter."` 出现在 `getAllPrefs` / setter 附近
-
-如果实测的常量值与 spec 不一致，**先改 spec 4.3 节**再继续。
-
-- [ ] **Step 3：记录确认结果到 PR1 commit message**
-
-无需文件改动。后续 PR2 的 `WidgetPrefs.kt` 会用到这两个常量。
+不需要 commit，进入 Task 1.2。
 
 ---
 
@@ -622,6 +608,21 @@ class WidgetPrefsTest {
         assertNull(p.lastError)
     }
 
+    @Test fun `reads Dart-encoded double (DOUBLE_PREFIX + value as String)`() {
+        val raw = FakePrefs()
+        // 模拟 Dart shared_preferences 写入的真实格式
+        raw.data[WidgetPrefs.KEY_CAL_OFFSET] = "VGhpcyBpcyB0aGUgcHJlZml4IGZvciBEb3VibGUu" + "0.42"
+        val p = WidgetPrefs(raw)
+        assertEquals(0.42, p.calibrationOffset, 1e-9)
+    }
+
+    @Test fun `reads Dart-encoded int (Long)`() {
+        val raw = FakePrefs()
+        raw.data[WidgetPrefs.KEY_ISO] = 800L
+        val p = WidgetPrefs(raw)
+        assertEquals(800, p.iso)
+    }
+
     @Test fun `writeError sets error code and clears loading`() {
         val p = WidgetPrefs(FakePrefs())
         p.markLoading()
@@ -652,20 +653,27 @@ package com.zhaoo.filmgo.film_go.widget
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.preference.PreferenceManager
 
 /**
  * SharedPreferences 强类型读写 wrapper。
  *
- * key 前缀 / 文件名与 Flutter `shared_preferences` 插件保持一致：
- *   file:   "FlutterSharedPreferences" (MODE_PRIVATE)
- *   prefix: "flutter."
+ * 与 Flutter `shared_preferences` 插件 2.4.7（legacy sync API）保持一致：
+ *   - file:   PreferenceManager.getDefaultSharedPreferences()
+ *             → `{packageName}_preferences.xml`
+ *   - prefix: "flutter."
+ *   - int    → Long
+ *   - double → String，前缀 DOUBLE_PREFIX + value.toString()
+ *
  * 详见 Task 1.1 实测确认。
  */
 class WidgetPrefs(private val prefs: SharedPreferences) {
 
     companion object {
-        const val PREFS_FILE = "FlutterSharedPreferences"
         private const val P = "flutter."
+
+        /** shared_preferences_android 2.x 用此前缀把 String 标记为 Dart double。 */
+        const val DOUBLE_PREFIX = "VGhpcyBpcyB0aGUgcHJlZml4IGZvciBEb3VibGUu"
 
         const val KEY_ISO            = "${P}widget.iso"
         const val KEY_CAL_OFFSET     = "${P}widget.calOffset"
@@ -676,11 +684,12 @@ class WidgetPrefs(private val prefs: SharedPreferences) {
         const val KEY_LAST_ERROR     = "${P}widget.lastError"
         const val KEY_LOADING_AT     = "${P}widget.loadingAt"
 
+        @Suppress("DEPRECATION")
         fun from(context: Context): WidgetPrefs =
-            WidgetPrefs(context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE))
+            WidgetPrefs(PreferenceManager.getDefaultSharedPreferences(context))
     }
 
-    val iso: Int get() = prefs.getInt(KEY_ISO, 400)
+    val iso: Int get() = prefs.getLong(KEY_ISO, 400L).toInt()
     val calibrationOffset: Double get() = readDouble(KEY_CAL_OFFSET) ?: 0.0
     val lastEv: Double? get() = readDouble(KEY_LAST_EV)
     val lastApertureFNumber: Double? get() = readDouble(KEY_LAST_APERTURE)
@@ -690,21 +699,19 @@ class WidgetPrefs(private val prefs: SharedPreferences) {
     val lastError: String? get() = prefs.getString(KEY_LAST_ERROR, null)
     val loadingAt: Long get() = prefs.getLong(KEY_LOADING_AT, 0L)
 
-    /**
-     * Flutter `shared_preferences` 在 Android 上把 Dart `double` 写为 float；
-     * 历史版本曾用 `putLong(doubleToRawLongBits)`。这里先按 float 读，失败再回退到 long-bits。
-     */
+    /** 按 Dart shared_preferences 的 double 编码读：String，去 prefix 后 toDouble()。 */
     private fun readDouble(key: String): Double? {
         if (!prefs.contains(key)) return null
-        return runCatching { prefs.getFloat(key, 0f).toDouble() }
-            .recoverCatching { java.lang.Double.longBitsToDouble(prefs.getLong(key, 0L)) }
-            .getOrNull()
+        val raw = prefs.getString(key, null) ?: return null
+        val body = if (raw.startsWith(DOUBLE_PREFIX)) raw.substring(DOUBLE_PREFIX.length) else raw
+        return body.toDoubleOrNull()
     }
 
     fun markLoading(now: Long = System.currentTimeMillis()) {
         prefs.edit().putLong(KEY_LOADING_AT, now).apply()
     }
 
+    /** 写时复刻 Dart 端编码：double → String(DOUBLE_PREFIX + value)。 */
     fun writeResult(
         ev: Double,
         apertureFNumber: Double,
@@ -712,9 +719,9 @@ class WidgetPrefs(private val prefs: SharedPreferences) {
         takenAtMillis: Long,
     ) {
         prefs.edit()
-            .putFloat(KEY_LAST_EV, ev.toFloat())
-            .putFloat(KEY_LAST_APERTURE, apertureFNumber.toFloat())
-            .putFloat(KEY_LAST_SHUTTER, shutterSeconds.toFloat())
+            .putString(KEY_LAST_EV, DOUBLE_PREFIX + ev)
+            .putString(KEY_LAST_APERTURE, DOUBLE_PREFIX + apertureFNumber)
+            .putString(KEY_LAST_SHUTTER, DOUBLE_PREFIX + shutterSeconds)
             .putLong(KEY_LAST_TAKEN_AT, takenAtMillis)
             .remove(KEY_LAST_ERROR)
             .putLong(KEY_LOADING_AT, 0L)
@@ -729,8 +736,6 @@ class WidgetPrefs(private val prefs: SharedPreferences) {
     }
 }
 ```
-
-> 关于 `calibrationOffset` 的双路径读法：Flutter `shared_preferences` 2.x 把 Dart `double` 在 Android 端存为 `float`（见插件源码）。3.x+ 也保持兼容。但为防版本变动，这里同时兼容 `putFloat` 与 `putLong(rawDoubleBits)` 两种读法。
 
 - [ ] **Step 2：跑测试**
 
