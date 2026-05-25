@@ -45,6 +45,6 @@ void main() {
     await tester.tap(find.text('计算'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Calc'), findsOneWidget);
+    expect(find.text('景深 · 超焦距'), findsOneWidget);
   });
 }
