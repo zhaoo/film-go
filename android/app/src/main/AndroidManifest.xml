@@ -33,6 +33,19 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <receiver
+            android:name=".widget.QuickMeterWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_quick_meter_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.zhaoo.filmgo.film_go.widget.ACTION_MEASURE" />
+                <action android:name="com.zhaoo.filmgo.film_go.widget.ACTION_OPEN_APP" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/quick_meter_widget_info" />
+        </receiver>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
