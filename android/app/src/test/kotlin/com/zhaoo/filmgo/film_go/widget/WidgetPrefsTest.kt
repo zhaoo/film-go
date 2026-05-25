@@ -10,7 +10,12 @@ class WidgetPrefsTest {
     private class FakePrefs : android.content.SharedPreferences {
         val data = HashMap<String, Any?>()
         override fun getAll(): MutableMap<String, *> = data
-        override fun getString(key: String, defValue: String?) = data[key] as String? ?: defValue
+        // 严格模仿真实 Android：若 value 不是 String 则抛 ClassCastException。
+        override fun getString(key: String, defValue: String?): String? {
+            if (!data.containsKey(key)) return defValue
+            val v = data[key] ?: return defValue
+            return v as String
+        }
         override fun getStringSet(key: String, defValues: MutableSet<String>?) = defValues
         override fun getInt(key: String, defValue: Int) = (data[key] as? Long)?.toInt() ?: (data[key] as? Int) ?: defValue
         override fun getLong(key: String, defValue: Long) = (data[key] as? Long) ?: defValue
@@ -79,6 +84,16 @@ class WidgetPrefsTest {
         raw.data[WidgetPrefs.KEY_ISO] = 800L
         val p = WidgetPrefs(raw)
         assertEquals(800, p.iso)
+    }
+
+    @Test fun `readDouble returns default when underlying value is not a String`() {
+        // 模拟 Android 真实场景：某次旧写入或别的写入器把 Long 写进了同一个 key，
+        // 真实 SharedPreferences.getString 会抛 ClassCastException，
+        // 我们必须吞掉它并回落到默认值。
+        val raw = FakePrefs()
+        raw.data[WidgetPrefs.KEY_CAL_OFFSET] = 999L
+        val p = WidgetPrefs(raw)
+        assertEquals(0.0, p.calibrationOffset, 1e-9)
     }
 
     @Test fun `writeError sets error code and clears loading`() {

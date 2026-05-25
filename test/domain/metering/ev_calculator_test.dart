@@ -80,5 +80,33 @@ void main() {
         );
       }
     });
+
+    test('parity fixture: suggestPairs(ev=12, iso=400) — pinned for Kotlin parity', () {
+      // 与 android/app/src/test/kotlin/.../ExposureMathTest.kt 中
+      // `parity fixture - suggestPairs ev=12 iso=400` 严格对齐：长度、顺序、数值
+      // 必须 byte-identical。若改了 tolerance / ladder / 排序，请同步更新 Kotlin。
+      final pairs = EvCalculator.suggestPairs(ev: 12, iso: 400);
+      final actual = pairs
+          .map((p) => <double>[p.aperture.fNumber, p.shutter.seconds])
+          .toList();
+      expect(
+        actual,
+        equals(<List<double>>[
+          <double>[1.0, 1 / 1000],
+          <double>[1.4142135623730951, 1 / 500],
+          <double>[2.0, 1 / 250],
+          <double>[2.8284271247461903, 1 / 125],
+          <double>[4.0, 1 / 60],
+          <double>[5.656854249492381, 1 / 30],
+          <double>[8.0, 1 / 15],
+          <double>[11.313708498984761, 1 / 8],
+          <double>[16.0, 1 / 4],
+          <double>[22.627416997969522, 1 / 2],
+          <double>[32.0, 1.0],
+          <double>[45.254833995939045, 2.0],
+          <double>[64.0, 4.0],
+        ]),
+      );
+    });
   });
 }

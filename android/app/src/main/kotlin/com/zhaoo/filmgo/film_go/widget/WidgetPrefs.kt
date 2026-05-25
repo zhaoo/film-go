@@ -48,10 +48,15 @@ class WidgetPrefs(private val prefs: SharedPreferences) {
     val lastError: String? get() = prefs.getString(KEY_LAST_ERROR, null)
     val loadingAt: Long get() = prefs.getLong(KEY_LOADING_AT, 0L)
 
-    /** 按 Dart shared_preferences 的 double 编码读：String，去 prefix 后 toDouble()。 */
+    /**
+     * 按 Dart shared_preferences 的 double 编码读：String，去 prefix 后 toDouble()。
+     *
+     * 防御性读：真实 Android `getString` 若 value 不是 String 会抛 ClassCastException
+     * （例如旧版本曾以 Long 写入同一 key、或其他写入者污染了文件），此时返回 null
+     * 让上层走默认值，避免 widget onUpdate 直接挂掉。
+     */
     private fun readDouble(key: String): Double? {
-        if (!prefs.contains(key)) return null
-        val raw = prefs.getString(key, null) ?: return null
+        val raw = runCatching { prefs.getString(key, null) }.getOrNull() ?: return null
         val body = if (raw.startsWith(DOUBLE_PREFIX)) raw.substring(DOUBLE_PREFIX.length) else raw
         return body.toDoubleOrNull()
     }

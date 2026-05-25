@@ -85,4 +85,33 @@ class ExposureMathTest {
     @Test fun `median of empty returns null`() {
         assertNull(ExposureMath.medianOrNull(emptyList()))
     }
+
+    @Test fun `parity fixture - suggestPairs ev=12 iso=400 matches Dart EvCalculator`() {
+        // 对齐 test/domain/metering/ev_calculator_test.dart 中
+        // `parity fixture: suggestPairs(ev=12, iso=400)`。
+        // 长度、顺序、数值必须 byte-identical（IEEE 754 同表达式产物）。
+        // 修改 tolerance / ladder / 排序时，请同步更新 Dart 端。
+        val pairs = ExposureMath.suggestPairs(ev = 12.0, iso = 400)
+        val actual = pairs.map { listOf(it.apertureFNumber, it.shutterSeconds) }
+        val expected = listOf(
+            listOf(1.0,                  1.0 / 1000.0),
+            listOf(1.4142135623730951,   1.0 / 500.0),
+            listOf(2.0,                  1.0 / 250.0),
+            listOf(2.8284271247461903,   1.0 / 125.0),
+            listOf(4.0,                  1.0 / 60.0),
+            listOf(5.656854249492381,    1.0 / 30.0),
+            listOf(8.0,                  1.0 / 15.0),
+            listOf(11.313708498984761,   1.0 / 8.0),
+            listOf(16.0,                 1.0 / 4.0),
+            listOf(22.627416997969522,   1.0 / 2.0),
+            listOf(32.0,                 1.0),
+            listOf(45.254833995939045,   2.0),
+            listOf(64.0,                 4.0),
+        )
+        assertEquals("pair count", expected.size, actual.size)
+        for (i in expected.indices) {
+            assertEquals("aperture[$i]", expected[i][0], actual[i][0], 1e-9)
+            assertEquals("shutter[$i]",  expected[i][1], actual[i][1], 1e-12)
+        }
+    }
 }
