@@ -1,4 +1,5 @@
 import 'package:film_go/domain/dof/film_format.dart';
+import 'package:film_go/domain/shared/aperture.dart';
 import 'package:film_go/pages/calc/controller/dof_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,8 +26,7 @@ class DofController extends ChangeNotifier {
   }
 
   void setApertureIndex(int i) {
-    // Aperture.fullStops 长度 13
-    final clamped = i.clamp(0, 12);
+    final clamped = i.clamp(0, Aperture.fullStops.length - 1);
     _set(_state.copyWith(apertureIndex: clamped));
   }
 
