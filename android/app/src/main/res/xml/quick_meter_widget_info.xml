@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  AGP 8.1.0 + compileSdk=35 的 aapt2 link 会静默丢弃 targetCellWidth/Height
-  和 previewLayout（API 31+ widget attr）。源码里写了也不会进 APK，
-  反而误导排查；等 AGP 升级到 8.5+ 再加回。
   previewImage 必须是静态 drawable：用 @mipmap/ic_launcher 时它解析到
   adaptive-icon，MIUI/HyperOS 桌面渲染会失败甚至隐藏入口。
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="180dp"
     android:minHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:initialLayout="@layout/widget_quick_meter"
+    android:previewLayout="@layout/widget_quick_meter"
     android:updatePeriodMillis="0"
     android:previewImage="@drawable/widget_preview"
     android:description="@string/widget_quick_meter_description" />

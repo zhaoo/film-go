@@ -14,11 +14,25 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+
+    // 受限网络下 plugin marker 拉不到，但 AGP 主 artifact
+    // (com.android.tools.build:gradle) 已经在 ~/.gradle 缓存里。
+    // eachPlugin 把 plugin id 直接映射到主 artifact，跳过 marker。
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "com.android.application") {
+                useModule("com.android.tools.build:gradle:${requested.version}")
+            }
+            if (requested.id.id == "org.jetbrains.kotlin.android") {
+                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
+            }
+        }
+    }
 }
 
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "8.1.0" apply false
+    id "com.android.application" version "8.5.0" apply false
     id "org.jetbrains.kotlin.android" version "1.8.22" apply false
 }
 
