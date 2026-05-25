@@ -11,4 +11,5 @@
     <string name="widget_err_timeout_again">上次超时，再试一次</string>
     <string name="widget_err_out_of_range">超出快门范围</string>
     <string name="widget_quick_meter_label">Film·Go 快速测光</string>
+    <string name="widget_quick_meter_description">用环境光传感器快速测光，估算 EV 与 f/快门</string>
 </resources>

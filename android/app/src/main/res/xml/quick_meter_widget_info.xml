@@ -5,7 +5,9 @@
     android:resizeMode="none"
     android:targetCellWidth="4"
     android:targetCellHeight="2"
-    android:widgetCategory="home_screen|keyguard"
+    android:widgetCategory="home_screen"
     android:initialLayout="@layout/widget_quick_meter"
     android:updatePeriodMillis="0"
-    android:previewLayout="@layout/widget_quick_meter" />
+    android:previewLayout="@layout/widget_quick_meter"
+    android:previewImage="@mipmap/ic_launcher"
+    android:description="@string/widget_quick_meter_description" />
