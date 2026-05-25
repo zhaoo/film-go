@@ -35,10 +35,13 @@
             android:value="2" />
         <receiver
             android:name=".widget.QuickMeterWidgetProvider"
+            android:enabled="true"
             android:exported="true"
             android:label="@string/widget_quick_meter_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <intent-filter>
                 <action android:name="com.zhaoo.filmgo.film_go.widget.ACTION_MEASURE" />
                 <action android:name="com.zhaoo.filmgo.film_go.widget.ACTION_OPEN_APP" />
             </intent-filter>
