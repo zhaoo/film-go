@@ -4,9 +4,13 @@ import 'package:film_go/domain/dof/depth_of_field.dart';
 import 'package:film_go/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
+/// ∞ 区从右侧 8% 开始；distToX 与 _StripPainter 的 hatch 共用此分界。
+const double _kInfZoneStart = 0.92;
+const double _kLabelWidth = 56;
+
 /// 顶部胶片卷轴 DoF 可视化。
 ///
-/// 结构：上齿孔 16 / 中带 80 / 下齿孔 16 / 摘要 32 = 144 + 内边距 = 160 总高。
+/// 结构（共 160dp）：上齿孔 16 / 中带（自适应剩余）/ 下齿孔 16 / 摘要 32。
 class FilmStripDofView extends StatelessWidget {
   const FilmStripDofView({
     super.key,
@@ -89,15 +93,17 @@ class FilmStripDofView extends StatelessWidget {
   }
 }
 
-/// 横轴映射：log scale，超过 maxDist 或 ∞ → 落在右端 92% 之后。
+/// 横轴映射：log scale，超过 maxDist 或 ∞ → 落在 ∞ 区中部。
 double distToX(
   double m,
   double width, {
   required double minD,
   required double maxD,
 }) {
-  final usable = width * 0.92;
-  if (!m.isFinite || m > maxD) return width - width * 0.04;
+  final usable = width * _kInfZoneStart;
+  if (!m.isFinite || m > maxD) {
+    return width - width * (1 - _kInfZoneStart) / 2;
+  }
   final clamped = m.clamp(minD, maxD);
   final t = (math.log(clamped) - math.log(minD)) /
       (math.log(maxD) - math.log(minD));
@@ -145,9 +151,9 @@ class _StripPainter extends CustomPainter {
     );
     canvas.drawRect(mid, Paint()..color = bandColor);
 
-    // ∞ 区斜纹（右 8%）
+    // ∞ 区斜纹（右 8%），与 distToX 共用 _kInfZoneStart
     final infRect = Rect.fromLTRB(
-      size.width * 0.92,
+      size.width * _kInfZoneStart,
       _holeRow,
       size.width,
       size.height - _holeRow,
@@ -243,8 +249,13 @@ class _StripPainter extends CustomPainter {
   bool shouldRepaint(covariant _StripPainter old) =>
       old.result != result ||
       old.focusMeters != focusMeters ||
+      old.minDist != minDist ||
+      old.maxDist != maxDist ||
       old.bandColor != bandColor ||
-      old.dofColor != dofColor;
+      old.dofColor != dofColor ||
+      old.markerColor != markerColor ||
+      old.tickColor != tickColor ||
+      old.outlineColor != outlineColor;
 }
 
 class _MarkerLabels extends StatelessWidget {
@@ -305,10 +316,11 @@ class _MarkerLabels extends StatelessWidget {
     required bool highlight,
   }) {
     final color = highlight ? AppColors.spotHighlight : cs.onSurface;
+    final maxLeft = math.max(0.0, width - _kLabelWidth);
     return Positioned(
-      left: (x - 28).clamp(0, width - 56),
+      left: (x - _kLabelWidth / 2).clamp(0.0, maxLeft),
       bottom: 8,
-      width: 56,
+      width: _kLabelWidth,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
