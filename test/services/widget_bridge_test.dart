@@ -6,7 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeStore implements CalibrationStoreLike {
-  double _v = 0;
+  _FakeStore({double initial = 0}) : _v = initial;
+  double _v;
   @override
   double read() => _v;
   @override
@@ -43,6 +44,20 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(prefs.getInt('widget.iso'), 800);
+    });
+
+    test('calibrationOffset 变化后 SharedPreferences 同步更新', () async {
+      final prefs = await SharedPreferences.getInstance();
+      final controller = MeterController(store: _FakeStore(initial: 0.42));
+      final bridge = WidgetBridge(prefs: prefs);
+
+      bridge.attach(controller);
+      await Future<void>.delayed(Duration.zero);
+
+      controller.bootstrap();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(prefs.getDouble('widget.calOffset'), 0.42);
     });
 
     test('detach 后停止写入', () async {

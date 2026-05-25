@@ -16,6 +16,7 @@ class WidgetBridge {
   late void Function() _listener;
 
   void attach(MeterController controller) {
+    assert(_controller == null, 'WidgetBridge.attach() called twice without detach()');
     _controller = controller;
     _listener = () => _sync(controller);
     controller.addListener(_listener);
@@ -28,6 +29,8 @@ class WidgetBridge {
   }
 
   int _lastIso = -1;
+  // Sentinel: NaN != anything (including itself), so the first compare in
+  // _sync always triggers an initial write.
   double _lastOffset = double.nan;
 
   void _sync(MeterController c) {
