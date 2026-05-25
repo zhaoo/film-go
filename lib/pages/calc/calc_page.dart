@@ -7,6 +7,23 @@ import 'package:film_go/pages/calc/widgets/format_chip_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// 滚轮静态标签：避免每帧重算 ~510 个字符串。
+final List<String> _kFocusTickLabels = [
+  for (final v in DofState.focusSteps)
+    if (!v.isFinite)
+      '∞'
+    else if (v == v.truncateToDouble())
+      v.toInt().toString()
+    else
+      v.toStringAsFixed(1),
+];
+final List<String> _kFocalTickLabels = [
+  for (var mm = 8; mm <= 500; mm++) mm.toString(),
+];
+final List<String> _kApertureTickLabels = [
+  for (final a in Aperture.fullStops) a.display.replaceFirst('f/', ''),
+];
+
 class CalcPage extends ConsumerWidget {
   const CalcPage({super.key});
 
@@ -38,15 +55,7 @@ class CalcPage extends ConsumerWidget {
             DofParamRow(
               label: '对焦距离',
               displayValue: _fmtFocus(s.focusMeters),
-              tickLabels: [
-                for (final v in DofState.focusSteps)
-                  if (!v.isFinite)
-                    '∞'
-                  else if (v == v.truncateToDouble())
-                    v.toInt().toString()
-                  else
-                    v.toStringAsFixed(1),
-              ],
+              tickLabels: _kFocusTickLabels,
               activeIndex: s.focusDistIndex,
               onIndexChanged: c.setFocusDistIndex,
               onSnapToHyperfocal: c.snapToHyperfocal,
@@ -55,9 +64,7 @@ class CalcPage extends ConsumerWidget {
             DofParamRow(
               label: '焦距',
               displayValue: '${s.focalLengthMm} mm',
-              tickLabels: [
-                for (var mm = 8; mm <= 500; mm++) mm.toString(),
-              ],
+              tickLabels: _kFocalTickLabels,
               activeIndex: s.focalLengthMm - 8,
               onIndexChanged: (i) => c.setFocalLength(i + 8),
             ),
@@ -65,10 +72,7 @@ class CalcPage extends ConsumerWidget {
             DofParamRow(
               label: '光圈',
               displayValue: s.aperture.display,
-              tickLabels: [
-                for (final a in Aperture.fullStops)
-                  a.display.replaceFirst('f/', ''),
-              ],
+              tickLabels: _kApertureTickLabels,
               activeIndex: s.apertureIndex,
               onIndexChanged: c.setApertureIndex,
             ),
